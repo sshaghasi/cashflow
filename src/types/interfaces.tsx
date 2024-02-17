@@ -10,7 +10,10 @@ export interface CashProps {
   onSubmit: (data: {
     source: string;
     amount: number;
-    effectiveDate: string;
+    paymentDate: string;
+    frequency: string;
+    startDate: string;
+    endDate: string;
   }) => void;
 }
 
@@ -27,8 +30,19 @@ export interface CashEntry {
     cashIn: CashEntry[];
     cashOut: CashEntry[];
     netCashFlow: number;
+    cumulativeCashFlow: number;
   }
 
   export interface DateStates {
     [date: string]: DateEntry;
   }
+
+  export interface CashInSubmitParam {
+    source: string;
+    amount: number;
+    paymentDate: string;
+    frequency: string;
+    startDate: string;
+    endDate: string;
+  }
+  

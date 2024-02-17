@@ -16,7 +16,7 @@ import Tabs from "@mui/joy/Tabs";
 import Tab from "@mui/joy/Tab";
 import TabPanel from "@mui/joy/TabPanel";
 
-import { CashEntry, DateStates } from "./types/interfaces"
+import { CashEntry, DateStates, CashInSubmitParam } from "./types/interfaces"
 
 
 function App() {
@@ -49,7 +49,7 @@ function App() {
 
     dates.forEach((date) => {
       const formattedDate = date.toISOString().split("T")[0];
-      newDateStates[formattedDate] = { cashIn: [], cashOut: [], netCashFlow: 0 };
+      newDateStates[formattedDate] = { cashIn: [], cashOut: [], netCashFlow: 0, cumulativeCashFlow: 0 };
     });
 
     setDateStates(newDateStates);
@@ -74,57 +74,103 @@ function App() {
     setTimeFrame(event.target.value);
   };
 
+  function calculateAndUpdateNetCashFlow(dateStates: DateStates): DateStates {
+    const updatedDateStates = { ...dateStates };
+    const dates = Object.keys(updatedDateStates).sort(); // Sort dates to ensure chronological order
+  
+    let previousCumulativeCashFlow = 0; // Initialize previous day's cumulative cash flow
+  
+    dates.forEach((date) => {
+      const dateEntry = updatedDateStates[date];
+      const totalCashIn = dateEntry.cashIn.reduce((acc, curr) => acc + curr.amount, 0);
+      const totalCashOut = dateEntry.cashOut.reduce((acc, curr) => acc + curr.amount, 0);
+      const netCashFlow = totalCashIn - totalCashOut;
+      const cumulativeCashFlow = previousCumulativeCashFlow + netCashFlow; // Calculate cumulative cash flow
+  
+      // Update the date entry with net and cumulative cash flow
+      updatedDateStates[date].netCashFlow = netCashFlow;
+      updatedDateStates[date].cumulativeCashFlow = cumulativeCashFlow;
+  
+      // Update previousCumulativeCashFlow for the next iteration
+      previousCumulativeCashFlow = cumulativeCashFlow;
+    });
+  
+    return updatedDateStates;
+  }
+  
+  
   const handleCashInSubmit = ({
     source,
     amount,
-    effectiveDate,
-  }: {
-    source: string;
-    amount: number;
-    effectiveDate: string;
-  }) => {
+    paymentDate,
+    frequency,
+    startDate,
+    endDate,
+  }: CashInSubmitParam ) => {
     setDateStates((prevState) => {
-      const newEntry: CashEntry = { source, amount };
-      const dateEntry = prevState[effectiveDate] || { cashIn: [] };
-      return {
-        ...prevState,
-        [effectiveDate]: {
-          ...dateEntry,
-          cashIn: [...dateEntry.cashIn, newEntry],
-        },
-      };
+      let updatedState = { ...prevState };
+      const newEntry = { source, amount };
+  
+      if (frequency === "Daily" && startDate && endDate) {
+        // Convert start and end dates to Date objects if they're not already
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        const datesInRange = generateDateRange(start, end);
+  
+        datesInRange.forEach(date => {
+          const formattedDate = date.toISOString().split('T')[0];
+          if (!updatedState[formattedDate]) {
+            updatedState[formattedDate] = { cashIn: [], cashOut: [], netCashFlow: 0, cumulativeCashFlow: 0 };
+          }
+          updatedState[formattedDate].cashIn.push(newEntry);
+        });
+      } else if (frequency === "One-time" && paymentDate) {
+        // Handle one-time frequency case as before
+        if (!updatedState[paymentDate]) {
+          updatedState[paymentDate] = { cashIn: [], cashOut: [], netCashFlow: 0, cumulativeCashFlow: 0 };
+        }
+        updatedState[paymentDate].cashIn.push(newEntry);
+      }
+      // Repeat similar logic for other frequencies if needed
+  
+      // Update dateStates with new entries and return the new state
+      return calculateAndUpdateNetCashFlow(updatedState);
     });
   };
-
+  
+  
   const handleCashOutSubmit = ({
     source,
     amount,
-    effectiveDate,
+    paymentDate,
   }: {
     source: string;
     amount: number;
-    effectiveDate: string;
+    paymentDate: string;
   }) => {
     setDateStates((prevState) => {
       const newEntry: CashEntry = { source, amount };
-      const dateEntry = prevState[effectiveDate] || { cashOut: [] };
-      return {
+      const dateEntry = prevState[paymentDate] || { cashIn: [], cashOut: [], netCashFlow: 0 };
+      const updatedState = {
         ...prevState,
-        [effectiveDate]: {
+        [paymentDate]: {
           ...dateEntry,
           cashOut: [...dateEntry.cashOut, newEntry],
         },
       };
+  
+      // Here, integrate the net cash flow calculation
+      return calculateAndUpdateNetCashFlow(updatedState);
     });
   };
-
+  
   return (
-    <Box padding={20} margin={0}>
+    <Box padding={10} margin={0}>
       <Grid container spacing={3}>
         <Grid padding={5} md={3}>
           <Item>
             <CashIn onSubmit={handleCashInSubmit} />
-            <pre>{JSON.stringify(dateStates, null, 2)}</pre>
+            
           </Item>
         </Grid>
         <Grid padding={5} md={3}>
@@ -149,7 +195,7 @@ function App() {
                   <OverviewTable dateStates={dateStates} />
                 </TabPanel>
                 <TabPanel value={1}>
-                  <DetailedTable />
+                  <DetailedTable dateStates={dateStates} />
                 </TabPanel>
               </Tabs>
             </Grid>

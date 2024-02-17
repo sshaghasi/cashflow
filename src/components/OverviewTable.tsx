@@ -5,7 +5,7 @@ import { OverviewTableProps } from "../types/interfaces";
 
 const OverviewTable = ({ dateStates }: OverviewTableProps) => {
   return (
-    <Sheet sx={{ height: 250, overflow: 'auto' }}>
+    <Sheet sx={{ height: 500, overflow: "auto" }}>
       <Table stickyHeader aria-label="Overview Table">
         <thead>
           <tr>
@@ -17,12 +17,31 @@ const OverviewTable = ({ dateStates }: OverviewTableProps) => {
           </tr>
         </thead>
         <tbody>
-          {Object.keys(dateStates).map((date, index) => (
+          {Object.entries(dateStates).map(([date, entry], index) => (
             <tr key={index}>
               <td>{date}</td>
+              <td>
+                {entry.cashIn
+                  .reduce(
+                    (acc: number, curr: { amount: number }) =>
+                      acc + curr.amount,
+                    0
+                  )
+                  .toFixed(2)}
+              </td>
+              <td>
+                {entry.cashOut
+                  .reduce(
+                    (acc: number, curr: { amount: number }) =>
+                      acc + curr.amount,
+                    0
+                  )
+                  .toFixed(2)}
+              </td>
+              <td>{entry.netCashFlow?.toFixed(2)}</td>
+              <td>{entry.cumulativeCashFlow?.toFixed(2)}</td>
             </tr>
           ))}
-            
         </tbody>
       </Table>
     </Sheet>
