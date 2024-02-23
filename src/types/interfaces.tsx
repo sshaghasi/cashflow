@@ -14,35 +14,56 @@ export interface CashProps {
     frequency: string;
     startDate: string;
     endDate: string;
+    paymentFirstDate: string;
+    paymentSecondDate: string;
+    paymentMonth: string;
+    payOn?: string;
   }) => void;
-}
-
-export interface CashEntry {
-    source: string;
-    amount: number;
-  }
-
-  export interface DisplayDataProps {
-    dateStates: Record<string, DateEntry>;
-  }
-
-  export interface DateEntry {
-    cashIn: CashEntry[];
-    cashOut: CashEntry[];
-    netCashFlow: number;
-    cumulativeCashFlow: number;
-  }
-
-  export interface DateStates {
-    [date: string]: DateEntry;
-  }
-
-  export interface CashInSubmitParam {
+  onCashOutSubmit: (data: {
     source: string;
     amount: number;
     paymentDate: string;
     frequency: string;
     startDate: string;
     endDate: string;
-  }
-  
+    paymentFirstDate: string;
+    paymentSecondDate: string;
+    paymentMonth: string;
+    payOn?: string;
+  }) => void; // Add this line
+  dateRange: string[];
+}
+
+
+export interface CashEntry {
+  source: string;
+  amount: number;
+}
+
+export interface DisplayDataProps {
+  dateStates: Record<string, DateEntry>;
+}
+
+export interface DateEntry {
+  cashIn: CashEntry[];
+  cashOut: CashEntry[];
+  netCashFlow: number;
+  cumulativeCashFlow: number;
+}
+
+export interface DateStates {
+  [date: string]: DateEntry;
+}
+
+export interface CashSubmitParam {
+  source: string;
+  amount: number;
+  paymentDate: string;
+  frequency: string;
+  startDate: string;
+  endDate: string;
+  paymentFirstDate: string;
+  paymentSecondDate: string;
+  paymentMonth: string;
+  payOn?: string;
+}

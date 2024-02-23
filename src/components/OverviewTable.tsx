@@ -49,5 +49,3 @@ const OverviewTable = ({ dateStates }: OverviewTableProps) => {
 };
 
 export default OverviewTable;
-
-// Notes: consider Caching
