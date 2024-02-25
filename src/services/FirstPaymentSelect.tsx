@@ -19,7 +19,7 @@ const FirstPaymentSelect: React.FC<FirstPaymentSelectProps> = ({
 
   // Generate the options list dynamically
   const optionsList = Array.from({ length: 30 }, (_, i) => {
-    const day = i + 1;
+    const day = i + 1
     let suffix = 'th';
     if (day % 10 === 1 && day !== 11) suffix = 'st';
     else if (day % 10 === 2 && day !== 12) suffix = 'nd';

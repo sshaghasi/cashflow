@@ -28,21 +28,16 @@ const CashIn: React.FC<CashProps> = ({
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
   const [payOn, setPayOn] = useState<string>("");
-  const [paymentFirstDate, setPaymentFirstDate] = useState<string>("1st");
-  const [paymentSecondDate, setPaymentSecondDate] = useState<string>("15th");
-  const [paymentMonth, setPaymentMonth] = useState<string>("January");
+  const [paymentFirstDate, setPaymentFirstDate] = useState<string>("");
+  const [paymentSecondDate, setPaymentSecondDate] = useState<string>("");
+  const [paymentMonth, setPaymentMonth] = useState<string>("January"); 
+
+  console.log(paymentFirstDate)
 
   const resetForm = () => {
     setSource("");
     setAmount("");
-    setPaymentDate("");
-    setFrequency("One-time");
-    setStartDate("");
-    setEndDate("");
-    setPayOn("");
-    setPaymentFirstDate("1st");
-    setPaymentSecondDate("15th");
-    setPaymentMonth("January");
+   
   };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {

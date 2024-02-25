@@ -18,8 +18,9 @@ const StartDateSelect: React.FC<StartDateSelectProps> = ({
     if (newValue) {
       setStartDate(newValue);
     }
+    console.log(newValue)
   };
-
+  
   return (
     <Select
       defaultValue={defaultValue}

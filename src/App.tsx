@@ -17,13 +17,13 @@ import Tab from "@mui/joy/Tab";
 import TabPanel from "@mui/joy/TabPanel";
 
 import { DateStates, CashSubmitParam } from "./types/interfaces";
-import { endOfMonth } from 'date-fns'
-
+import { endOfMonth } from "date-fns";
 
 function App() {
   // My 2 states
   const [timeFrame, setTimeFrame] = useState("12 months");
   const [dateStates, setDateStates] = useState<DateStates>({});
+
   const dateRange = Object.keys(dateStates);
   console.log(dateStates);
   function generateDateRange(startDate: Date, endDate: Date): Date[] {
@@ -165,7 +165,7 @@ function App() {
         const start = new Date(startDate);
 
         const end = new Date(endDate);
-     
+
         const dayIndex = [
           "Sunday",
           "Monday",
@@ -175,7 +175,7 @@ function App() {
           "Friday",
           "Saturday",
         ].indexOf(payOn);
-      
+
         const datesInRange = generateDateRange(start, end).filter(
           (date) => date.getDay() === dayIndex
         );
@@ -238,10 +238,23 @@ function App() {
           }
           updatedState[formattedDate].cashIn.push(newEntry);
         });
-      } else if ( frequency === "Every 4 weeks" && payOn && startDate && endDate ) {
+      } else if (
+        frequency === "Every 4 weeks" &&
+        payOn &&
+        startDate &&
+        endDate
+      ) {
         const start = new Date(startDate);
         const end = new Date(endDate);
-        const dayIndex = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday", "Saturday", ].indexOf(payOn);
+        const dayIndex = [
+          "Sunday",
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday",
+        ].indexOf(payOn);
         let datesInRange = generateDateRange(start, end);
 
         // Find the first occurrence of `payOn` after the start date
@@ -258,6 +271,7 @@ function App() {
           );
         }
 
+
         datesInRange.forEach((date) => {
           const formattedDate = date.toISOString().split("T")[0];
 
@@ -271,7 +285,32 @@ function App() {
           }
           updatedState[formattedDate].cashIn.push(newEntry);
         });
-      } 
+      } else if (frequency === "Monthly" && startDate && endDate) {
+        const start = new Date(startDate);
+
+        const end = new Date(endDate);
+        let currentDate = start;
+        
+
+        while (currentDate <= end) {
+          const formattedDate = currentDate.toISOString().split("T")[0];
+          if (!updatedState[formattedDate]) {
+            updatedState[formattedDate] = {
+              cashIn: [],
+              cashOut: [],
+              netCashFlow: 0,
+              cumulativeCashFlow: 0,
+            };
+          }
+          updatedState[formattedDate].cashIn.push(newEntry);
+
+          // Move to the same day next month
+          currentDate = new Date(
+            currentDate.setMonth(currentDate.getMonth() + 1)
+          );
+          
+        }
+      }
 
       // Add any additional frequency handling as needed
 

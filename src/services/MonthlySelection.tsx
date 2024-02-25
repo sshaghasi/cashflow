@@ -14,6 +14,8 @@ interface MonthlySelectionProps {
   setEndDate: (endDate: string) => void;
 }
 
+
+
 const MonthlySelection: React.FC<MonthlySelectionProps> = ({
   paymentFirstDate,
   setPaymentFirstDate,
@@ -26,25 +28,38 @@ const MonthlySelection: React.FC<MonthlySelectionProps> = ({
   const [filteredDateRange, setFilteredDateRange] = useState<string[]>([]);
 
   useEffect(() => {
+    const formatDateAsLocalYYYYMMDD = (date: Date) => {
+      const year = date.getFullYear();
+      const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Months are 0-indexed
+      const day = date.getDate().toString().padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+  
     const newFilteredRange = dateRange.map(dateString => {
       const date = new Date(dateString);
-      // Ensure the date is formatted as "YYYY-MM-DD"
-      const formattedDate = date.toISOString().split('T')[0];
+      console.log("Original Date: ", date);
+      const formattedDate = formatDateAsLocalYYYYMMDD(date);
+      console.log("Formatted Date: ", formattedDate);
       return formattedDate;
+      
+
     }).filter(formattedDate => {
       const date = new Date(formattedDate);
       if (paymentFirstDate === "Last Day") {
-        // Check if the date is the last day of its month
         return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate() === date.getDate();
       }
-      // Filter dates that match the specified day of the month
       const dayOfMonth = parseInt(paymentFirstDate, 10);
-      // Adjust date to the correct format if dayOfMonth is not NaN
       return !isNaN(dayOfMonth) && date.getDate() === dayOfMonth;
     });
 
+  
+
+    
+  
     setFilteredDateRange(newFilteredRange);
+    console.log(newFilteredRange)
   }, [paymentFirstDate, dateRange]);
+  
 
   return (
     <>
