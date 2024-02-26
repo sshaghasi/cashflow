@@ -310,6 +310,30 @@ function App() {
           );
           
         }
+      } else if (frequency === "Every 2 months" && startDate && endDate) {
+        const start = new Date(startDate)
+        const end = new Date(endDate)
+        let currentDate = start
+
+        while (currentDate <= end) {
+          const formattedDate = currentDate.toISOString().split("T")[0];
+          if (!updatedState[formattedDate]) {
+            updatedState[formattedDate] = {
+              cashIn: [],
+              cashOut: [],
+              netCashFlow: 0,
+              cumulativeCashFlow: 0,
+            };
+          }
+          updatedState[formattedDate].cashIn.push(newEntry);
+
+          // Move to the same day next month
+          currentDate = new Date(
+            currentDate.setMonth(currentDate.getMonth() + 2)
+          );
+        }
+
+
       }
 
       // Add any additional frequency handling as needed

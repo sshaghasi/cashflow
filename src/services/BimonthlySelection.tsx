@@ -4,7 +4,7 @@ import FirstPaymentSelect from "./FirstPaymentSelect";
 import StartDateSelect from "./StartDateSelect";
 import EndDateSelect from "./EndDateSelect";
 
-interface MonthlySelectionProps {
+interface BimonthlySelectionProps {
   paymentFirstDate: string;
   setPaymentFirstDate: (date: string) => void;
   dateRange: string[];
@@ -14,7 +14,7 @@ interface MonthlySelectionProps {
   setEndDate: (endDate: string) => void;
 }
 
-const MonthlySelection: React.FC<MonthlySelectionProps> = ({
+const BimonthlySelection: React.FC<BimonthlySelectionProps> = ({
   paymentFirstDate,
   setPaymentFirstDate,
   dateRange,
@@ -32,32 +32,36 @@ const MonthlySelection: React.FC<MonthlySelectionProps> = ({
       const day = date.getDate().toString().padStart(2, '0');
       return `${year}-${month}-${day}`;
     };
-  
+
+    // Assume the base month is the month of the startDate. Adjust accordingly if needed.
+    const baseDate = new Date(startDate);
+    const baseMonth = baseDate.getMonth(); // Get the month of the base date (0-indexed)
+
     const newFilteredRange = dateRange.map(dateString => {
       const date = new Date(dateString);
       console.log("Original Date: ", date);
       const formattedDate = formatDateAsLocalYYYYMMDD(date);
       console.log("Formatted Date: ", formattedDate);
       return formattedDate;
-      
-
     }).filter(formattedDate => {
       const date = new Date(formattedDate);
+      // Calculate the month difference from the base month
+      const monthDiff = (date.getFullYear() - baseDate.getFullYear()) * 12 + date.getMonth() - baseMonth;
+      // Check if the month difference is a multiple of 2 (every two months)
+      const isEveryTwoMonths = monthDiff % 2 === 0;
+
       if (paymentFirstDate === "Last Day") {
-        return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate() === date.getDate();
+        // Include the date if it's the last day of the month and falls in the two-month interval
+        return isEveryTwoMonths && new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate() === date.getDate();
       }
       const dayOfMonth = parseInt(paymentFirstDate, 10);
-      return !isNaN(dayOfMonth) && date.getDate() === dayOfMonth;
+      // Include the date if it matches the payment day and falls in the two-month interval
+      return !isNaN(dayOfMonth) && isEveryTwoMonths && date.getDate() === dayOfMonth;
     });
 
-  
-
-    
-  
     setFilteredDateRange(newFilteredRange);
     console.log(newFilteredRange)
-  }, [paymentFirstDate, dateRange]);
-  
+  }, [paymentFirstDate, dateRange, startDate]);
 
   return (
     <>
@@ -79,4 +83,4 @@ const MonthlySelection: React.FC<MonthlySelectionProps> = ({
   );
 };
 
-export default MonthlySelection;
+export default BimonthlySelection;
