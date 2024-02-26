@@ -20,12 +20,16 @@ import { DateStates, CashSubmitParam } from "./types/interfaces";
 import { endOfMonth } from "date-fns";
 
 function App() {
-  // My 2 states
   const [timeFrame, setTimeFrame] = useState("12 months");
   const [dateStates, setDateStates] = useState<DateStates>({});
-
   const dateRange = Object.keys(dateStates);
-  console.log(dateStates);
+
+  const handleTimeFrameChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setTimeFrame(event.target.value);
+  };
+
   function generateDateRange(startDate: Date, endDate: Date): Date[] {
     const dates = [];
     let currentDate = new Date(startDate);
@@ -36,8 +40,6 @@ function App() {
     }
     return dates;
   }
-
-
 
   // Sets Date States
   useEffect(() => {
@@ -57,8 +59,6 @@ function App() {
       default:
         break;
     }
-
-
     const dates = generateDateRange(startDate, endDate);
     const newDateStates: DateStates = {};
 
@@ -74,12 +74,6 @@ function App() {
 
     setDateStates(newDateStates);
   }, [timeFrame]);
-
-  const handleTimeFrameChange = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setTimeFrame(event.target.value);
-  };
 
   function calculateAndUpdateNetCashFlow(dateStates: DateStates): DateStates {
     const updatedDateStates = { ...dateStates };
@@ -459,9 +453,9 @@ function App() {
           // Increment currentDate to the first day of the next month to avoid infinite loop and ensure proper iteration
           currentDate.setMonth(currentDate.getMonth() + 1, 1);
         }
-      }  else if (frequency === "Yearly" && paymentMonth && paymentFirstDate && startDate && endDate) {
+      } else if (frequency === "Yearly" && paymentMonth && paymentFirstDate && startDate && endDate) {
         const startDateObj = new Date(startDate);
-        const endDateObj = new Date(endDate );
+        const endDateObj = new Date(endDate);
 
         const parseDayFromString = (dayString: string, month: number, year: number): number => {
           if (dayString === 'Last Day') {
@@ -471,14 +465,14 @@ function App() {
             return !isNaN(day) ? day : 1;
           }
         };
-  
+
         // Convert month name to its numeric value (0-11)
         const targetMonth = new Date(`${paymentMonth} 1, 2000`).getMonth();
-  
+
         for (let year = startDateObj.getFullYear(); year <= endDateObj.getFullYear(); year++) {
           const day = parseDayFromString(paymentFirstDate, targetMonth, year);
           const paymentDate = new Date(year, targetMonth, day);
-  
+
           if (paymentDate >= startDateObj && paymentDate <= endDateObj) {
             const formattedDate = paymentDate.toISOString().split("T")[0];
             updatedState[formattedDate] = updatedState[formattedDate] || {
@@ -844,9 +838,9 @@ function App() {
           // Increment currentDate to the first day of the next month to avoid infinite loop and ensure proper iteration
           currentDate.setMonth(currentDate.getMonth() + 1, 1);
         }
-      }  else if (frequency === "Yearly" && paymentMonth && paymentFirstDate && startDate && endDate) {
+      } else if (frequency === "Yearly" && paymentMonth && paymentFirstDate && startDate && endDate) {
         const startDateObj = new Date(startDate);
-        const endDateObj = new Date(endDate );
+        const endDateObj = new Date(endDate);
 
         const parseDayFromString = (dayString: string, month: number, year: number): number => {
           if (dayString === 'Last Day') {
@@ -856,14 +850,14 @@ function App() {
             return !isNaN(day) ? day : 1;
           }
         };
-  
+
         // Convert month name to its numeric value (0-11)
         const targetMonth = new Date(`${paymentMonth} 1, 2000`).getMonth();
-  
+
         for (let year = startDateObj.getFullYear(); year <= endDateObj.getFullYear(); year++) {
           const day = parseDayFromString(paymentFirstDate, targetMonth, year);
           const paymentDate = new Date(year, targetMonth, day);
-  
+
           if (paymentDate >= startDateObj && paymentDate <= endDateObj) {
             const formattedDate = paymentDate.toISOString().split("T")[0];
             updatedState[formattedDate] = updatedState[formattedDate] || {
@@ -876,8 +870,6 @@ function App() {
           }
         }
       }
-  
-    
 
       // Add any additional frequency handling as needed
       return calculateAndUpdateNetCashFlow(updatedState);
