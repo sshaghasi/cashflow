@@ -15,6 +15,7 @@ import PaymentDate from "../services/PaymentDate";
 import WeeklySelection from "../services/WeeklySelection";
 import MonthlySelection from "../services/MonthlySelection";
 import BimonthlySelection from "../services/BimonthlySelection";
+import QuarterlySelection from "../services/QuarterlySelection";
 
 // Assuming CashProps is already defined appropriately in your types/interfaces
 const CashIn: React.FC<CashProps> = ({
@@ -188,24 +189,16 @@ const CashIn: React.FC<CashProps> = ({
       case "Quarterly":
         return (
           <>
-            <FormLabel>First payment</FormLabel>
-            <FirstPaymentSelect
-              defaultValue={paymentFirstDate}
-              setPaymentFirstDate={setPaymentFirstDate}
-            />
-            <FormLabel>Start Date</FormLabel>
-            <StartDateSelect
-              dateRange={dateRange} // This prop is passed down from App
-              setStartDate={setStartDate}
-              defaultValue={startDate} // Ensure this is managed if you want a default value
-            />
-            <FormLabel>End Date</FormLabel>
-            <EndDateSelect
-              dateRange={dateRange}
-              setEndDate={setEndDate}
-              defaultValue={endDate}
-            />
-          </>
+          <QuarterlySelection
+            paymentFirstDate={paymentFirstDate}
+            setPaymentFirstDate={setPaymentFirstDate}
+            dateRange={dateRange}
+            startDate={startDate}
+            setStartDate={setStartDate}
+            endDate={endDate}
+            setEndDate={setEndDate}
+          />
+        </>
         );
       case "Yearly":
         return (

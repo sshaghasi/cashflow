@@ -290,7 +290,7 @@ function App() {
 
         const end = new Date(endDate);
         let currentDate = start;
-        
+
 
         while (currentDate <= end) {
           const formattedDate = currentDate.toISOString().split("T")[0];
@@ -308,7 +308,7 @@ function App() {
           currentDate = new Date(
             currentDate.setMonth(currentDate.getMonth() + 1)
           );
-          
+
         }
       } else if (frequency === "Every 2 months" && startDate && endDate) {
         const start = new Date(startDate)
@@ -333,11 +333,51 @@ function App() {
           );
         }
 
-
       }
-
+      else if (frequency === "Quarterly" && startDate && endDate) {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        let currentDate = start;
+      
+        while (currentDate <= end) {
+          const formattedDate = currentDate.toISOString().split("T")[0];
+          if (!updatedState[formattedDate]) {
+            updatedState[formattedDate] = {
+              cashIn: [],
+              cashOut: [],
+              netCashFlow: 0,
+              cumulativeCashFlow: 0,
+            };
+          }
+          updatedState[formattedDate].cashIn.push(newEntry);
+      
+          // Calculate next quarter's date without updating currentDate yet
+          let nextQuarterDate = new Date(currentDate);
+          nextQuarterDate.setMonth(currentDate.getMonth() + 3);
+      
+          // Check if the next quarter date is after the end date
+          if (nextQuarterDate > end) {
+            // If adding one quarter exceeds the end date, check if we need to add the end date itself
+            if (formattedDate !== end.toISOString().split("T")[0]) {
+              // Only add the end date if it's not the same as the already added date
+              const endDateFormatted = end.toISOString().split("T")[0];
+              if (!updatedState[endDateFormatted]) {
+                updatedState[endDateFormatted] = {
+                  cashIn: [],
+                  cashOut: [],
+                  netCashFlow: 0,
+                  cumulativeCashFlow: 0,
+                };
+              }
+              updatedState[endDateFormatted].cashIn.push(newEntry);
+            }
+            break; // Exit the loop since we've reached or passed the end date
+          }
+          // Now, update currentDate to the next quarter since we're continuing the loop
+          currentDate = nextQuarterDate;
+        }
+      }
       // Add any additional frequency handling as needed
-
       return calculateAndUpdateNetCashFlow(updatedState);
     });
   };
