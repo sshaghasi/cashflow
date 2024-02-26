@@ -18,6 +18,7 @@ import BimonthlySelection from "../services/BimonthlySelection";
 import QuarterlySelection from "../services/QuarterlySelection";
 import TwiceYearSelection from "../services/TwiceYearSelection";
 import TwicePerMonth from "../services/TwicePerMonth";
+import YearlySelection from "../services/YearlySelection";
 
 // Assuming CashProps is already defined appropriately in your types/interfaces
 const CashIn: React.FC<CashProps> = ({
@@ -34,14 +35,14 @@ const CashIn: React.FC<CashProps> = ({
   const [payOn, setPayOn] = useState<string>("");
   const [paymentFirstDate, setPaymentFirstDate] = useState<string>("");
   const [paymentSecondDate, setPaymentSecondDate] = useState<string>("");
-  const [paymentMonth, setPaymentMonth] = useState<string>("January"); 
+  const [paymentMonth, setPaymentMonth] = useState<string>("January");
 
   console.log(paymentFirstDate)
 
   const resetForm = () => {
     setSource("");
     setAmount("");
-   
+
   };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -163,102 +164,92 @@ const CashIn: React.FC<CashProps> = ({
       case "Monthly":
         return (
           <>
-          <MonthlySelection
-            paymentFirstDate={paymentFirstDate}
-            setPaymentFirstDate={setPaymentFirstDate}
-            dateRange={dateRange}
-            startDate={startDate}
-            setStartDate={setStartDate}
-            endDate={endDate}
-            setEndDate={setEndDate}
-          />
-        </>
+            <MonthlySelection
+              paymentFirstDate={paymentFirstDate}
+              setPaymentFirstDate={setPaymentFirstDate}
+              dateRange={dateRange}
+              startDate={startDate}
+              setStartDate={setStartDate}
+              endDate={endDate}
+              setEndDate={setEndDate}
+            />
+          </>
         );
       case "Every 2 months":
         return (
           <>
-          <BimonthlySelection
-            paymentFirstDate={paymentFirstDate}
-            setPaymentFirstDate={setPaymentFirstDate}
-            dateRange={dateRange}
-            startDate={startDate}
-            setStartDate={setStartDate}
-            endDate={endDate}
-            setEndDate={setEndDate}
-          />
-        </>
+            <BimonthlySelection
+              paymentFirstDate={paymentFirstDate}
+              setPaymentFirstDate={setPaymentFirstDate}
+              dateRange={dateRange}
+              startDate={startDate}
+              setStartDate={setStartDate}
+              endDate={endDate}
+              setEndDate={setEndDate}
+            />
+          </>
         );
       case "Quarterly":
         return (
           <>
-          <QuarterlySelection
-            paymentFirstDate={paymentFirstDate}
-            setPaymentFirstDate={setPaymentFirstDate}
-            dateRange={dateRange}
-            startDate={startDate}
-            setStartDate={setStartDate}
-            endDate={endDate}
-            setEndDate={setEndDate}
-          />
-        </>
+            <QuarterlySelection
+              paymentFirstDate={paymentFirstDate}
+              setPaymentFirstDate={setPaymentFirstDate}
+              dateRange={dateRange}
+              startDate={startDate}
+              setStartDate={setStartDate}
+              endDate={endDate}
+              setEndDate={setEndDate}
+            />
+          </>
         );
       case "Yearly":
         return (
           <>
-            <FormLabel>Payment month</FormLabel>
-            <PaymentMonth
-              defaultValue={paymentMonth}
+            <YearlySelection
+              paymentMonth={paymentMonth} // Add this line
+              paymentFirstDate={paymentFirstDate} // And this line
               setPaymentMonth={setPaymentMonth}
-            />
-            <FormLabel>First payment</FormLabel>
-            <FirstPaymentSelect
-              defaultValue={paymentFirstDate}
               setPaymentFirstDate={setPaymentFirstDate}
-            />
-            <FormLabel>Start Date</FormLabel>
-            <StartDateSelect
-              dateRange={dateRange} // This prop is passed down from App
-              setStartDate={setStartDate}
-              defaultValue={startDate} // Ensure this is managed if you want a default value
-            />
-            <FormLabel>End Date</FormLabel>
-            <EndDateSelect
               dateRange={dateRange}
+              startDate={startDate}
+              setStartDate={setStartDate}
+              endDate={endDate}
               setEndDate={setEndDate}
-              defaultValue={endDate}
             />
           </>
+
         );
       case "Twice per month":
         return (
           <>
-          <TwicePerMonth
-            paymentFirstDate={paymentFirstDate}
-            setPaymentFirstDate={setPaymentFirstDate}
-            paymentSecondDate={paymentSecondDate}
-            setPaymentSecondDate={setPaymentSecondDate}
-            dateRange={dateRange}
-            startDate={startDate}
-            setStartDate={setStartDate}
-            endDate={endDate}
-            setEndDate={setEndDate}
-          />
-        </>
-          
+            <TwicePerMonth
+              paymentFirstDate={paymentFirstDate}
+              setPaymentFirstDate={setPaymentFirstDate}
+              paymentSecondDate={paymentSecondDate}
+              setPaymentSecondDate={setPaymentSecondDate}
+              dateRange={dateRange}
+              startDate={startDate}
+              setStartDate={setStartDate}
+              endDate={endDate}
+              setEndDate={setEndDate}
+            />
+          </>
+
         );
       case "Twice per year":
         return (
           <>
-          <TwiceYearSelection
-            paymentFirstDate={paymentFirstDate}
-            setPaymentFirstDate={setPaymentFirstDate}
-            dateRange={dateRange}
-            startDate={startDate}
-            setStartDate={setStartDate}
-            endDate={endDate}
-            setEndDate={setEndDate}
-          />
-        </>
+            <TwiceYearSelection
+              paymentFirstDate={paymentFirstDate}
+              setPaymentFirstDate={setPaymentFirstDate}
+              dateRange={dateRange}
+              startDate={startDate}
+              setStartDate={setStartDate}
+              endDate={endDate}
+              setEndDate={setEndDate}
+            />
+          </>
         );
       default:
         return null;

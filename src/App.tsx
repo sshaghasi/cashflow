@@ -37,6 +37,8 @@ function App() {
     return dates;
   }
 
+
+
   // Sets Date States
   useEffect(() => {
     const startDate = new Date();
@@ -55,6 +57,7 @@ function App() {
       default:
         break;
     }
+
 
     const dates = generateDateRange(startDate, endDate);
     const newDateStates: DateStates = {};
@@ -338,7 +341,7 @@ function App() {
         const start = new Date(startDate);
         const end = new Date(endDate);
         let currentDate = start;
-      
+
         while (currentDate <= end) {
           const formattedDate = currentDate.toISOString().split("T")[0];
           if (!updatedState[formattedDate]) {
@@ -350,11 +353,11 @@ function App() {
             };
           }
           updatedState[formattedDate].cashIn.push(newEntry);
-      
+
           // Calculate next quarter's date without updating currentDate yet
           let nextQuarterDate = new Date(currentDate);
           nextQuarterDate.setMonth(currentDate.getMonth() + 3);
-      
+
           // Check if the next quarter date is after the end date
           if (nextQuarterDate > end) {
             // If adding one quarter exceeds the end date, check if we need to add the end date itself
@@ -375,13 +378,13 @@ function App() {
           }
           // Now, update currentDate to the next quarter since we're continuing the loop
           currentDate = nextQuarterDate;
-        } 
-        
+        }
+
       } else if (frequency === "Twice per year" && startDate && endDate) {
         const start = new Date(startDate);
         const end = new Date(endDate);
         let currentDate = start;
-      
+
         while (currentDate <= end) {
           const formattedDate = currentDate.toISOString().split("T")[0];
           if (!updatedState[formattedDate]) {
@@ -393,11 +396,11 @@ function App() {
             };
           }
           updatedState[formattedDate].cashIn.push(newEntry);
-      
+
           // Calculate the next semi-annual date without updating currentDate yet
           let nextSemiAnnualDate = new Date(currentDate);
           nextSemiAnnualDate.setMonth(currentDate.getMonth() + 6);
-      
+
           // Check if the next semi-annual date is after the end date
           if (nextSemiAnnualDate > end) {
             // If adding six months exceeds the end date, check if we need to add the end date itself
@@ -419,9 +422,75 @@ function App() {
           // Now, update currentDate to the next semi-annual date since we're continuing the loop
           currentDate = nextSemiAnnualDate;
         }
+      } else if (frequency === "Twice per month" && startDate && endDate) {
+        const startDateObj = new Date(startDate);
+        const endDateObj = new Date(endDate);
+        const currentDate = new Date(startDateObj);
+
+        const parseDayFromString = (dayString: string, month: number, year: number): number => {
+          if (dayString === 'Last Day') {
+            return new Date(year, month + 1, 0).getDate();
+          } else {
+            const day = parseInt(dayString, 10);
+            return !isNaN(day) ? day : 1; // Default to 1 if parsing fails
+          }
+        };
+
+        while (currentDate <= endDateObj) {
+          [paymentFirstDate, paymentSecondDate].forEach(dayString => {
+            const day = parseDayFromString(dayString, currentDate.getMonth(), currentDate.getFullYear());
+            const paymentDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+
+            // Ensure paymentDate is within the start and end date range
+            if (paymentDate >= startDateObj && paymentDate <= endDateObj) {
+              const formattedDate = paymentDate.toISOString().split("T")[0];
+              if (!updatedState[formattedDate]) {
+                updatedState[formattedDate] = {
+                  cashIn: [],
+                  cashOut: [],
+                  netCashFlow: 0,
+                  cumulativeCashFlow: 0,
+                };
+              }
+              updatedState[formattedDate].cashIn.push({ source, amount });
+            }
+          });
+
+          // Increment currentDate to the first day of the next month to avoid infinite loop and ensure proper iteration
+          currentDate.setMonth(currentDate.getMonth() + 1, 1);
+        }
+      }  else if (frequency === "Yearly" && paymentMonth && paymentFirstDate && startDate && endDate) {
+        const startDateObj = new Date(startDate);
+        const endDateObj = new Date(endDate );
+
+        const parseDayFromString = (dayString: string, month: number, year: number): number => {
+          if (dayString === 'Last Day') {
+            return new Date(year, month + 1, 0).getDate();
+          } else {
+            const day = parseInt(dayString, 10);
+            return !isNaN(day) ? day : 1;
+          }
+        };
+  
+        // Convert month name to its numeric value (0-11)
+        const targetMonth = new Date(`${paymentMonth} 1, 2000`).getMonth();
+  
+        for (let year = startDateObj.getFullYear(); year <= endDateObj.getFullYear(); year++) {
+          const day = parseDayFromString(paymentFirstDate, targetMonth, year);
+          const paymentDate = new Date(year, targetMonth, day);
+  
+          if (paymentDate >= startDateObj && paymentDate <= endDateObj) {
+            const formattedDate = paymentDate.toISOString().split("T")[0];
+            updatedState[formattedDate] = updatedState[formattedDate] || {
+              cashIn: [],
+              cashOut: [],
+              netCashFlow: 0,
+              cumulativeCashFlow: 0,
+            };
+            updatedState[formattedDate].cashIn.push(newEntry);
+          }
+        }
       }
-      
-      
       // Add any additional frequency handling as needed
       return calculateAndUpdateNetCashFlow(updatedState);
     });
@@ -437,13 +506,23 @@ function App() {
     paymentFirstDate,
     paymentSecondDate,
     paymentMonth,
+    payOn, // This assumes you've included "payOn" in your CashSubmitParam type
   }: CashSubmitParam) => {
+    console.log({
+      source,
+      amount,
+      paymentDate,
+      frequency,
+      startDate,
+      endDate,
+      payOn,
+    }); // Before calling handleCashOutSubmit
+
     setDateStates((prevState) => {
       let updatedState = { ...prevState };
       const newEntry = { source, amount };
 
       if (frequency === "Daily" && startDate && endDate) {
-        // Convert start and end dates to Date objects if they're not already
         const start = new Date(startDate);
         const end = new Date(endDate);
         const datesInRange = generateDateRange(start, end);
@@ -461,7 +540,6 @@ function App() {
           updatedState[formattedDate].cashOut.push(newEntry);
         });
       } else if (frequency === "One-time" && paymentDate) {
-        // Handle one-time frequency case as before
         if (!updatedState[paymentDate]) {
           updatedState[paymentDate] = {
             cashIn: [],
@@ -470,14 +548,342 @@ function App() {
             cumulativeCashFlow: 0,
           };
         }
-        updatedState[paymentDate].cashOut.push(newEntry);
-      }
-      // Repeat similar logic for other frequencies if needed
+        updatedState[paymentDate].cashIn.push(newEntry);
+      } else if (frequency === "Weekly" && payOn && startDate && endDate) {
+        const start = new Date(startDate);
 
-      // Update dateStates with new entries and return the new state
+        const end = new Date(endDate);
+
+        const dayIndex = [
+          "Sunday",
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday",
+        ].indexOf(payOn);
+
+        const datesInRange = generateDateRange(start, end).filter(
+          (date) => date.getDay() === dayIndex
+        );
+
+        datesInRange.forEach((date) => {
+          const formattedDate = date.toISOString().split("T")[0];
+
+          if (!updatedState[formattedDate]) {
+            updatedState[formattedDate] = {
+              cashIn: [],
+              cashOut: [],
+              netCashFlow: 0,
+              cumulativeCashFlow: 0,
+            };
+          }
+          updatedState[formattedDate].cashOut.push(newEntry);
+        });
+      } else if (
+        frequency === "Every 2 weeks" &&
+        payOn &&
+        startDate &&
+        endDate
+      ) {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        const dayIndex = [
+          "Sunday",
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday",
+        ].indexOf(payOn);
+        let datesInRange = generateDateRange(start, end);
+
+        // Find the first occurrence of `payOn` after the start date
+        const firstOccurrenceIndex = datesInRange.findIndex(
+          (date) => date.getDay() === dayIndex
+        );
+        if (firstOccurrenceIndex !== -1) {
+          // Filter to keep only dates that are `payOn` and every 2 weeks from the first occurrence
+          datesInRange = datesInRange.filter(
+            (_, index) =>
+              index >= firstOccurrenceIndex &&
+              (index - firstOccurrenceIndex) % 14 === 0
+          );
+        }
+
+        datesInRange.forEach((date) => {
+          const formattedDate = date.toISOString().split("T")[0];
+
+          if (!updatedState[formattedDate]) {
+            updatedState[formattedDate] = {
+              cashIn: [],
+              cashOut: [],
+              netCashFlow: 0,
+              cumulativeCashFlow: 0,
+            };
+          }
+          updatedState[formattedDate].cashOut.push(newEntry);
+        });
+      } else if (
+        frequency === "Every 4 weeks" &&
+        payOn &&
+        startDate &&
+        endDate
+      ) {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        const dayIndex = [
+          "Sunday",
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday",
+        ].indexOf(payOn);
+        let datesInRange = generateDateRange(start, end);
+
+        // Find the first occurrence of `payOn` after the start date
+        const firstOccurrenceIndex = datesInRange.findIndex(
+          (date) => date.getDay() === dayIndex
+        );
+
+        if (firstOccurrenceIndex !== -1) {
+          // Include only dates that are `payOn` and every 4 weeks from the first occurrence
+          datesInRange = datesInRange.filter(
+            (_, index) =>
+              index >= firstOccurrenceIndex &&
+              (index - firstOccurrenceIndex) % 28 === 0
+          );
+        }
+
+
+        datesInRange.forEach((date) => {
+          const formattedDate = date.toISOString().split("T")[0];
+
+          if (!updatedState[formattedDate]) {
+            updatedState[formattedDate] = {
+              cashIn: [],
+              cashOut: [],
+              netCashFlow: 0,
+              cumulativeCashFlow: 0,
+            };
+          }
+          updatedState[formattedDate].cashOut.push(newEntry);
+        });
+      } else if (frequency === "Monthly" && startDate && endDate) {
+        const start = new Date(startDate);
+
+        const end = new Date(endDate);
+        let currentDate = start;
+
+
+        while (currentDate <= end) {
+          const formattedDate = currentDate.toISOString().split("T")[0];
+          if (!updatedState[formattedDate]) {
+            updatedState[formattedDate] = {
+              cashIn: [],
+              cashOut: [],
+              netCashFlow: 0,
+              cumulativeCashFlow: 0,
+            };
+          }
+          updatedState[formattedDate].cashOut.push(newEntry);
+
+          // Move to the same day next month
+          currentDate = new Date(
+            currentDate.setMonth(currentDate.getMonth() + 1)
+          );
+
+        }
+      } else if (frequency === "Every 2 months" && startDate && endDate) {
+        const start = new Date(startDate)
+        const end = new Date(endDate)
+        let currentDate = start
+
+        while (currentDate <= end) {
+          const formattedDate = currentDate.toISOString().split("T")[0];
+          if (!updatedState[formattedDate]) {
+            updatedState[formattedDate] = {
+              cashIn: [],
+              cashOut: [],
+              netCashFlow: 0,
+              cumulativeCashFlow: 0,
+            };
+          }
+          updatedState[formattedDate].cashOut.push(newEntry);
+
+          // Move to the same day next month
+          currentDate = new Date(
+            currentDate.setMonth(currentDate.getMonth() + 2)
+          );
+        }
+
+      }
+      else if (frequency === "Quarterly" && startDate && endDate) {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        let currentDate = start;
+
+        while (currentDate <= end) {
+          const formattedDate = currentDate.toISOString().split("T")[0];
+          if (!updatedState[formattedDate]) {
+            updatedState[formattedDate] = {
+              cashIn: [],
+              cashOut: [],
+              netCashFlow: 0,
+              cumulativeCashFlow: 0,
+            };
+          }
+          updatedState[formattedDate].cashOut.push(newEntry);
+
+          // Calculate next quarter's date without updating currentDate yet
+          let nextQuarterDate = new Date(currentDate);
+          nextQuarterDate.setMonth(currentDate.getMonth() + 3);
+
+          // Check if the next quarter date is after the end date
+          if (nextQuarterDate > end) {
+            // If adding one quarter exceeds the end date, check if we need to add the end date itself
+            if (formattedDate !== end.toISOString().split("T")[0]) {
+              // Only add the end date if it's not the same as the already added date
+              const endDateFormatted = end.toISOString().split("T")[0];
+              if (!updatedState[endDateFormatted]) {
+                updatedState[endDateFormatted] = {
+                  cashIn: [],
+                  cashOut: [],
+                  netCashFlow: 0,
+                  cumulativeCashFlow: 0,
+                };
+              }
+              updatedState[endDateFormatted].cashIn.push(newEntry);
+            }
+            break; // Exit the loop since we've reached or passed the end date
+          }
+          // Now, update currentDate to the next quarter since we're continuing the loop
+          currentDate = nextQuarterDate;
+        }
+
+      } else if (frequency === "Twice per year" && startDate && endDate) {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        let currentDate = start;
+
+        while (currentDate <= end) {
+          const formattedDate = currentDate.toISOString().split("T")[0];
+          if (!updatedState[formattedDate]) {
+            updatedState[formattedDate] = {
+              cashIn: [],
+              cashOut: [],
+              netCashFlow: 0,
+              cumulativeCashFlow: 0,
+            };
+          }
+          updatedState[formattedDate].cashOut.push(newEntry);
+
+          // Calculate the next semi-annual date without updating currentDate yet
+          let nextSemiAnnualDate = new Date(currentDate);
+          nextSemiAnnualDate.setMonth(currentDate.getMonth() + 6);
+
+          // Check if the next semi-annual date is after the end date
+          if (nextSemiAnnualDate > end) {
+            // If adding six months exceeds the end date, check if we need to add the end date itself
+            if (formattedDate !== end.toISOString().split("T")[0]) {
+              // Only add the end date if it's not the same as the already added date
+              const endDateFormatted = end.toISOString().split("T")[0];
+              if (!updatedState[endDateFormatted]) {
+                updatedState[endDateFormatted] = {
+                  cashIn: [],
+                  cashOut: [],
+                  netCashFlow: 0,
+                  cumulativeCashFlow: 0,
+                };
+              }
+              updatedState[endDateFormatted].cashIn.push(newEntry);
+            }
+            break; // Exit the loop since we've reached or passed the end date
+          }
+          // Now, update currentDate to the next semi-annual date since we're continuing the loop
+          currentDate = nextSemiAnnualDate;
+        }
+      } else if (frequency === "Twice per month" && startDate && endDate) {
+        const startDateObj = new Date(startDate);
+        const endDateObj = new Date(endDate);
+        const currentDate = new Date(startDateObj);
+
+        const parseDayFromString = (dayString: string, month: number, year: number): number => {
+          if (dayString === 'Last Day') {
+            return new Date(year, month + 1, 0).getDate();
+          } else {
+            const day = parseInt(dayString, 10);
+            return !isNaN(day) ? day : 1; // Default to 1 if parsing fails
+          }
+        };
+
+        while (currentDate <= endDateObj) {
+          [paymentFirstDate, paymentSecondDate].forEach(dayString => {
+            const day = parseDayFromString(dayString, currentDate.getMonth(), currentDate.getFullYear());
+            const paymentDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+
+            // Ensure paymentDate is within the start and end date range
+            if (paymentDate >= startDateObj && paymentDate <= endDateObj) {
+              const formattedDate = paymentDate.toISOString().split("T")[0];
+              if (!updatedState[formattedDate]) {
+                updatedState[formattedDate] = {
+                  cashIn: [],
+                  cashOut: [],
+                  netCashFlow: 0,
+                  cumulativeCashFlow: 0,
+                };
+              }
+              updatedState[formattedDate].cashIn.push({ source, amount });
+            }
+          });
+
+          // Increment currentDate to the first day of the next month to avoid infinite loop and ensure proper iteration
+          currentDate.setMonth(currentDate.getMonth() + 1, 1);
+        }
+      }  else if (frequency === "Yearly" && paymentMonth && paymentFirstDate && startDate && endDate) {
+        const startDateObj = new Date(startDate);
+        const endDateObj = new Date(endDate );
+
+        const parseDayFromString = (dayString: string, month: number, year: number): number => {
+          if (dayString === 'Last Day') {
+            return new Date(year, month + 1, 0).getDate();
+          } else {
+            const day = parseInt(dayString, 10);
+            return !isNaN(day) ? day : 1;
+          }
+        };
+  
+        // Convert month name to its numeric value (0-11)
+        const targetMonth = new Date(`${paymentMonth} 1, 2000`).getMonth();
+  
+        for (let year = startDateObj.getFullYear(); year <= endDateObj.getFullYear(); year++) {
+          const day = parseDayFromString(paymentFirstDate, targetMonth, year);
+          const paymentDate = new Date(year, targetMonth, day);
+  
+          if (paymentDate >= startDateObj && paymentDate <= endDateObj) {
+            const formattedDate = paymentDate.toISOString().split("T")[0];
+            updatedState[formattedDate] = updatedState[formattedDate] || {
+              cashIn: [],
+              cashOut: [],
+              netCashFlow: 0,
+              cumulativeCashFlow: 0,
+            };
+            updatedState[formattedDate].cashOut.push(newEntry);
+          }
+        }
+      }
+  
+    
+
+      // Add any additional frequency handling as needed
       return calculateAndUpdateNetCashFlow(updatedState);
     });
   };
+
 
   return (
     <Box padding={10} margin={0}>
