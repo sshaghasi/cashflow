@@ -16,6 +16,8 @@ import WeeklySelection from "../services/WeeklySelection";
 import MonthlySelection from "../services/MonthlySelection";
 import BimonthlySelection from "../services/BimonthlySelection";
 import QuarterlySelection from "../services/QuarterlySelection";
+import TwiceYearSelection from "../services/TwiceYearSelection";
+import TwicePerMonth from "../services/TwicePerMonth";
 
 // Assuming CashProps is already defined appropriately in your types/interfaces
 const CashIn: React.FC<CashProps> = ({
@@ -230,51 +232,33 @@ const CashIn: React.FC<CashProps> = ({
       case "Twice per month":
         return (
           <>
-            <FormLabel>First payment</FormLabel>
-            <FirstPaymentSelect
-              defaultValue={paymentFirstDate}
-              setPaymentFirstDate={setPaymentFirstDate}
-            />
-            <FormLabel>Second payment</FormLabel>
-            <SecondPaymentSelect
-              defaultValue={paymentSecondDate}
-              setPaymentSecondDate={setPaymentSecondDate}
-            />
-            <FormLabel>Start Date</FormLabel>
-            <StartDateSelect
-              dateRange={dateRange} // This prop is passed down from App
-              setStartDate={setStartDate}
-              defaultValue={startDate} // Ensure this is managed if you want a default value
-            />
-            <FormLabel>End Date</FormLabel>
-            <EndDateSelect
-              dateRange={dateRange}
-              setEndDate={setEndDate}
-              defaultValue={endDate}
-            />
-          </>
+          <TwicePerMonth
+            paymentFirstDate={paymentFirstDate}
+            setPaymentFirstDate={setPaymentFirstDate}
+            paymentSecondDate={paymentSecondDate}
+            setPaymentSecondDate={setPaymentSecondDate}
+            dateRange={dateRange}
+            startDate={startDate}
+            setStartDate={setStartDate}
+            endDate={endDate}
+            setEndDate={setEndDate}
+          />
+        </>
+          
         );
       case "Twice per year":
         return (
           <>
-            <FormLabel>First payment</FormLabel>
-            <FirstPaymentSelect
-              defaultValue={paymentFirstDate}
-              setPaymentFirstDate={setPaymentFirstDate}
-            />
-            <FormLabel>Start Date</FormLabel>
-            <StartDateSelect
-              dateRange={dateRange} // This prop is passed down from App
-              setStartDate={setStartDate}
-              defaultValue={startDate} // Ensure this is managed if you want a default value
-            />
-            <FormLabel>End Date</FormLabel>
-            <EndDateSelect
-              dateRange={dateRange}
-              setEndDate={setEndDate}
-              defaultValue={endDate}
-            />
-          </>
+          <TwiceYearSelection
+            paymentFirstDate={paymentFirstDate}
+            setPaymentFirstDate={setPaymentFirstDate}
+            dateRange={dateRange}
+            startDate={startDate}
+            setStartDate={setStartDate}
+            endDate={endDate}
+            setEndDate={setEndDate}
+          />
+        </>
         );
       default:
         return null;

@@ -375,8 +375,53 @@ function App() {
           }
           // Now, update currentDate to the next quarter since we're continuing the loop
           currentDate = nextQuarterDate;
+        } 
+        
+      } else if (frequency === "Twice per year" && startDate && endDate) {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        let currentDate = start;
+      
+        while (currentDate <= end) {
+          const formattedDate = currentDate.toISOString().split("T")[0];
+          if (!updatedState[formattedDate]) {
+            updatedState[formattedDate] = {
+              cashIn: [],
+              cashOut: [],
+              netCashFlow: 0,
+              cumulativeCashFlow: 0,
+            };
+          }
+          updatedState[formattedDate].cashIn.push(newEntry);
+      
+          // Calculate the next semi-annual date without updating currentDate yet
+          let nextSemiAnnualDate = new Date(currentDate);
+          nextSemiAnnualDate.setMonth(currentDate.getMonth() + 6);
+      
+          // Check if the next semi-annual date is after the end date
+          if (nextSemiAnnualDate > end) {
+            // If adding six months exceeds the end date, check if we need to add the end date itself
+            if (formattedDate !== end.toISOString().split("T")[0]) {
+              // Only add the end date if it's not the same as the already added date
+              const endDateFormatted = end.toISOString().split("T")[0];
+              if (!updatedState[endDateFormatted]) {
+                updatedState[endDateFormatted] = {
+                  cashIn: [],
+                  cashOut: [],
+                  netCashFlow: 0,
+                  cumulativeCashFlow: 0,
+                };
+              }
+              updatedState[endDateFormatted].cashIn.push(newEntry);
+            }
+            break; // Exit the loop since we've reached or passed the end date
+          }
+          // Now, update currentDate to the next semi-annual date since we're continuing the loop
+          currentDate = nextSemiAnnualDate;
         }
       }
+      
+      
       // Add any additional frequency handling as needed
       return calculateAndUpdateNetCashFlow(updatedState);
     });
