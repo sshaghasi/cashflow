@@ -4,12 +4,8 @@ import { inputBeforeStyle } from "../styles/inputBeforeStyle";
 import { CashProps } from "../types/interfaces";
 
 import FrequencySelect from "../services/FrequencySelect";
-import PayOnSelect from "../services/PayOnSelect";
 import StartDateSelect from "../services/StartDateSelect";
 import EndDateSelect from "../services/EndDateSelect";
-import FirstPaymentSelect from "../services/FirstPaymentSelect";
-import SecondPaymentSelect from "../services/SecondPaymentSelect";
-import PaymentMonth from "../services/PaymentMonth";
 import PaymentDate from "../services/PaymentDate";
 
 import WeeklySelection from "../services/WeeklySelection";
@@ -37,7 +33,7 @@ const CashIn: React.FC<CashProps> = ({
   const [paymentSecondDate, setPaymentSecondDate] = useState<string>("");
   const [paymentMonth, setPaymentMonth] = useState<string>("January");
 
-  console.log(paymentFirstDate)
+
 
   const resetForm = () => {
     setSource("");
@@ -85,7 +81,7 @@ const CashIn: React.FC<CashProps> = ({
     if (dateRange && dateRange.length > 0) {
       setPaymentDate(dateRange[0]);
       setStartDate(dateRange[0]);
-      setEndDate(dateRange[dateRange.length - 1]);
+      setEndDate(dateRange[dateRange.length]);
     }
   }, [dateRange]);
 

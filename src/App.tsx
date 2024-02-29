@@ -15,65 +15,77 @@ import TabList from "@mui/joy/TabList";
 import Tabs from "@mui/joy/Tabs";
 import Tab from "@mui/joy/Tab";
 import TabPanel from "@mui/joy/TabPanel";
+import Button from "@mui/joy/Button";
 
 import { DateStates, CashSubmitParam } from "./types/interfaces";
-import { endOfMonth } from "date-fns";
+import { eachDayOfInterval, parseISO, format } from "date-fns";
 
 function App() {
-  const [timeFrame, setTimeFrame] = useState("12 months");
   const [dateStates, setDateStates] = useState<DateStates>({});
   const dateRange = Object.keys(dateStates);
+  const [timeFrameStart, setTimeFrameStart] = useState("");
+  const [timeFrameEnd, setTimeFrameEnd] = useState("");
+  const [history, setHistory] = useState<DateStates[]>([]);
 
-  const handleTimeFrameChange = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setTimeFrame(event.target.value);
+
+  const handleTimeFrameStart = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setTimeFrameStart(event.target.value);
+  };
+  const handleTimeFrameEnd = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setTimeFrameEnd(event.target.value);
   };
 
   function generateDateRange(startDate: Date, endDate: Date): Date[] {
-    const dates = [];
-    let currentDate = new Date(startDate);
-
-    while (currentDate <= endDate) {
-      dates.push(new Date(currentDate));
-      currentDate.setDate(currentDate.getDate() + 1);
-    }
-    return dates;
-  }
-
-  // Sets Date States
-  useEffect(() => {
-    const startDate = new Date();
-    const endDate = new Date();
-
-    switch (timeFrame) {
-      case "3 months":
-        endDate.setMonth(startDate.getMonth() + 3);
-        break;
-      case "6 months":
-        endDate.setMonth(startDate.getMonth() + 6);
-        break;
-      case "12 months":
-        endDate.setFullYear(startDate.getFullYear() + 1);
-        break;
-      default:
-        break;
-    }
-    const dates = generateDateRange(startDate, endDate);
-    const newDateStates: DateStates = {};
-
-    dates.forEach((date) => {
-      const formattedDate = date.toISOString().split("T")[0];
-      newDateStates[formattedDate] = {
-        cashIn: [],
-        cashOut: [],
-        netCashFlow: 0,
-        cumulativeCashFlow: 0,
-      };
+    // Use eachDayOfInterval directly with Date objects
+    const dateRange = eachDayOfInterval({
+      start: startDate,
+      end: endDate,
     });
 
+    return dateRange;
+  }
+
+  const handleUpdateDateStates = (newDateStates: DateStates) => {
+    // Capture the current state in history before updating
+    setHistory((prevHistory) => [...prevHistory.slice(-10), dateStates]); // Keep last 10 states for example
     setDateStates(newDateStates);
-  }, [timeFrame]);
+  };
+
+  const undo = () => {
+    setHistory((prevHistory) => {
+      const newHistory = [...prevHistory];
+      const lastState = newHistory.pop(); // Remove the most recent state
+      if (lastState) {
+        setDateStates(lastState); // Revert to the most recent state
+      }
+      return newHistory; // Update history without the reverted state
+    });
+  };
+  
+  
+
+  useEffect(() => {
+    if (timeFrameStart && timeFrameEnd) {
+      // Direct parsing to Date objects using date-fns for ISO strings
+      const start = parseISO(timeFrameStart);
+      const end = parseISO(timeFrameEnd);
+
+      const dates = eachDayOfInterval({ start, end });
+
+      const newDateStates: DateStates = {};
+      dates.forEach((date) => {
+        const formattedDate = format(date, "yyyy-MM-dd"); // Formatting to string for keys
+        newDateStates[formattedDate] = {
+          cashIn: [],
+          cashOut: [],
+          netCashFlow: 0,
+          cumulativeCashFlow: 0,
+        };
+      });
+
+      setDateStates(newDateStates);
+    }
+  }, [timeFrameStart, timeFrameEnd]);
 
   function calculateAndUpdateNetCashFlow(dateStates: DateStates): DateStates {
     const updatedDateStates = { ...dateStates };
@@ -117,23 +129,14 @@ function App() {
     paymentMonth,
     payOn, // This assumes you've included "payOn" in your CashSubmitParam type
   }: CashSubmitParam) => {
-    console.log({
-      source,
-      amount,
-      paymentDate,
-      frequency,
-      startDate,
-      endDate,
-      payOn,
-    }); // Before calling handleCashInSubmit
-
     setDateStates((prevState) => {
       let updatedState = { ...prevState };
       const newEntry = { source, amount };
 
       if (frequency === "Daily" && startDate && endDate) {
-        const start = new Date(startDate);
-        const end = new Date(endDate);
+        const start = parseISO(startDate);
+        const end = parseISO(endDate);
+
         const datesInRange = generateDateRange(start, end);
 
         datesInRange.forEach((date) => {
@@ -159,9 +162,8 @@ function App() {
         }
         updatedState[paymentDate].cashIn.push(newEntry);
       } else if (frequency === "Weekly" && payOn && startDate && endDate) {
-        const start = new Date(startDate);
-
-        const end = new Date(endDate);
+        const start = parseISO(startDate);
+        const end = parseISO(endDate);
 
         const dayIndex = [
           "Sunday",
@@ -196,8 +198,8 @@ function App() {
         startDate &&
         endDate
       ) {
-        const start = new Date(startDate);
-        const end = new Date(endDate);
+        const start = parseISO(startDate);
+        const end = parseISO(endDate);
         const dayIndex = [
           "Sunday",
           "Monday",
@@ -241,8 +243,8 @@ function App() {
         startDate &&
         endDate
       ) {
-        const start = new Date(startDate);
-        const end = new Date(endDate);
+        const start = parseISO(startDate);
+        const end = parseISO(endDate);
         const dayIndex = [
           "Sunday",
           "Monday",
@@ -268,7 +270,6 @@ function App() {
           );
         }
 
-
         datesInRange.forEach((date) => {
           const formattedDate = date.toISOString().split("T")[0];
 
@@ -283,11 +284,10 @@ function App() {
           updatedState[formattedDate].cashIn.push(newEntry);
         });
       } else if (frequency === "Monthly" && startDate && endDate) {
-        const start = new Date(startDate);
+        const start = parseISO(startDate);
 
-        const end = new Date(endDate);
+        const end = parseISO(endDate);
         let currentDate = start;
-
 
         while (currentDate <= end) {
           const formattedDate = currentDate.toISOString().split("T")[0];
@@ -305,12 +305,11 @@ function App() {
           currentDate = new Date(
             currentDate.setMonth(currentDate.getMonth() + 1)
           );
-
         }
       } else if (frequency === "Every 2 months" && startDate && endDate) {
-        const start = new Date(startDate)
-        const end = new Date(endDate)
-        let currentDate = start
+        const start = parseISO(startDate);
+        const end = parseISO(endDate);
+        let currentDate = start;
 
         while (currentDate <= end) {
           const formattedDate = currentDate.toISOString().split("T")[0];
@@ -329,11 +328,9 @@ function App() {
             currentDate.setMonth(currentDate.getMonth() + 2)
           );
         }
-
-      }
-      else if (frequency === "Quarterly" && startDate && endDate) {
-        const start = new Date(startDate);
-        const end = new Date(endDate);
+      } else if (frequency === "Quarterly" && startDate && endDate) {
+        const start = parseISO(startDate);
+        const end = parseISO(endDate);
         let currentDate = start;
 
         while (currentDate <= end) {
@@ -373,10 +370,9 @@ function App() {
           // Now, update currentDate to the next quarter since we're continuing the loop
           currentDate = nextQuarterDate;
         }
-
       } else if (frequency === "Twice per year" && startDate && endDate) {
-        const start = new Date(startDate);
-        const end = new Date(endDate);
+        const start = parseISO(startDate);
+        const end = parseISO(endDate);
         let currentDate = start;
 
         while (currentDate <= end) {
@@ -417,12 +413,16 @@ function App() {
           currentDate = nextSemiAnnualDate;
         }
       } else if (frequency === "Twice per month" && startDate && endDate) {
-        const startDateObj = new Date(startDate);
-        const endDateObj = new Date(endDate);
-        const currentDate = new Date(startDateObj);
+        const startDateObj = parseISO(startDate);
+        const endDateObj = parseISO(endDate);
+        const currentDate = startDateObj;
 
-        const parseDayFromString = (dayString: string, month: number, year: number): number => {
-          if (dayString === 'Last Day') {
+        const parseDayFromString = (
+          dayString: string,
+          month: number,
+          year: number
+        ): number => {
+          if (dayString === "Last Day") {
             return new Date(year, month + 1, 0).getDate();
           } else {
             const day = parseInt(dayString, 10);
@@ -431,9 +431,17 @@ function App() {
         };
 
         while (currentDate <= endDateObj) {
-          [paymentFirstDate, paymentSecondDate].forEach(dayString => {
-            const day = parseDayFromString(dayString, currentDate.getMonth(), currentDate.getFullYear());
-            const paymentDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+          [paymentFirstDate, paymentSecondDate].forEach((dayString) => {
+            const day = parseDayFromString(
+              dayString,
+              currentDate.getMonth(),
+              currentDate.getFullYear()
+            );
+            const paymentDate = new Date(
+              currentDate.getFullYear(),
+              currentDate.getMonth(),
+              day
+            );
 
             // Ensure paymentDate is within the start and end date range
             if (paymentDate >= startDateObj && paymentDate <= endDateObj) {
@@ -453,12 +461,22 @@ function App() {
           // Increment currentDate to the first day of the next month to avoid infinite loop and ensure proper iteration
           currentDate.setMonth(currentDate.getMonth() + 1, 1);
         }
-      } else if (frequency === "Yearly" && paymentMonth && paymentFirstDate && startDate && endDate) {
-        const startDateObj = new Date(startDate);
-        const endDateObj = new Date(endDate);
+      } else if (
+        frequency === "Yearly" &&
+        paymentMonth &&
+        paymentFirstDate &&
+        startDate &&
+        endDate
+      ) {
+        const startDateObj = parseISO(startDate);
+        const endDateObj = parseISO(endDate);
 
-        const parseDayFromString = (dayString: string, month: number, year: number): number => {
-          if (dayString === 'Last Day') {
+        const parseDayFromString = (
+          dayString: string,
+          month: number,
+          year: number
+        ): number => {
+          if (dayString === "Last Day") {
             return new Date(year, month + 1, 0).getDate();
           } else {
             const day = parseInt(dayString, 10);
@@ -469,7 +487,11 @@ function App() {
         // Convert month name to its numeric value (0-11)
         const targetMonth = new Date(`${paymentMonth} 1, 2000`).getMonth();
 
-        for (let year = startDateObj.getFullYear(); year <= endDateObj.getFullYear(); year++) {
+        for (
+          let year = startDateObj.getFullYear();
+          year <= endDateObj.getFullYear();
+          year++
+        ) {
           const day = parseDayFromString(paymentFirstDate, targetMonth, year);
           const paymentDate = new Date(year, targetMonth, day);
 
@@ -653,7 +675,6 @@ function App() {
           );
         }
 
-
         datesInRange.forEach((date) => {
           const formattedDate = date.toISOString().split("T")[0];
 
@@ -673,7 +694,6 @@ function App() {
         const end = new Date(endDate);
         let currentDate = start;
 
-
         while (currentDate <= end) {
           const formattedDate = currentDate.toISOString().split("T")[0];
           if (!updatedState[formattedDate]) {
@@ -690,12 +710,11 @@ function App() {
           currentDate = new Date(
             currentDate.setMonth(currentDate.getMonth() + 1)
           );
-
         }
       } else if (frequency === "Every 2 months" && startDate && endDate) {
-        const start = new Date(startDate)
-        const end = new Date(endDate)
-        let currentDate = start
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        let currentDate = start;
 
         while (currentDate <= end) {
           const formattedDate = currentDate.toISOString().split("T")[0];
@@ -714,9 +733,7 @@ function App() {
             currentDate.setMonth(currentDate.getMonth() + 2)
           );
         }
-
-      }
-      else if (frequency === "Quarterly" && startDate && endDate) {
+      } else if (frequency === "Quarterly" && startDate && endDate) {
         const start = new Date(startDate);
         const end = new Date(endDate);
         let currentDate = start;
@@ -758,7 +775,6 @@ function App() {
           // Now, update currentDate to the next quarter since we're continuing the loop
           currentDate = nextQuarterDate;
         }
-
       } else if (frequency === "Twice per year" && startDate && endDate) {
         const start = new Date(startDate);
         const end = new Date(endDate);
@@ -806,8 +822,12 @@ function App() {
         const endDateObj = new Date(endDate);
         const currentDate = new Date(startDateObj);
 
-        const parseDayFromString = (dayString: string, month: number, year: number): number => {
-          if (dayString === 'Last Day') {
+        const parseDayFromString = (
+          dayString: string,
+          month: number,
+          year: number
+        ): number => {
+          if (dayString === "Last Day") {
             return new Date(year, month + 1, 0).getDate();
           } else {
             const day = parseInt(dayString, 10);
@@ -816,9 +836,17 @@ function App() {
         };
 
         while (currentDate <= endDateObj) {
-          [paymentFirstDate, paymentSecondDate].forEach(dayString => {
-            const day = parseDayFromString(dayString, currentDate.getMonth(), currentDate.getFullYear());
-            const paymentDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+          [paymentFirstDate, paymentSecondDate].forEach((dayString) => {
+            const day = parseDayFromString(
+              dayString,
+              currentDate.getMonth(),
+              currentDate.getFullYear()
+            );
+            const paymentDate = new Date(
+              currentDate.getFullYear(),
+              currentDate.getMonth(),
+              day
+            );
 
             // Ensure paymentDate is within the start and end date range
             if (paymentDate >= startDateObj && paymentDate <= endDateObj) {
@@ -838,12 +866,22 @@ function App() {
           // Increment currentDate to the first day of the next month to avoid infinite loop and ensure proper iteration
           currentDate.setMonth(currentDate.getMonth() + 1, 1);
         }
-      } else if (frequency === "Yearly" && paymentMonth && paymentFirstDate && startDate && endDate) {
+      } else if (
+        frequency === "Yearly" &&
+        paymentMonth &&
+        paymentFirstDate &&
+        startDate &&
+        endDate
+      ) {
         const startDateObj = new Date(startDate);
         const endDateObj = new Date(endDate);
 
-        const parseDayFromString = (dayString: string, month: number, year: number): number => {
-          if (dayString === 'Last Day') {
+        const parseDayFromString = (
+          dayString: string,
+          month: number,
+          year: number
+        ): number => {
+          if (dayString === "Last Day") {
             return new Date(year, month + 1, 0).getDate();
           } else {
             const day = parseInt(dayString, 10);
@@ -854,7 +892,11 @@ function App() {
         // Convert month name to its numeric value (0-11)
         const targetMonth = new Date(`${paymentMonth} 1, 2000`).getMonth();
 
-        for (let year = startDateObj.getFullYear(); year <= endDateObj.getFullYear(); year++) {
+        for (
+          let year = startDateObj.getFullYear();
+          year <= endDateObj.getFullYear();
+          year++
+        ) {
           const day = parseDayFromString(paymentFirstDate, targetMonth, year);
           const paymentDate = new Date(year, targetMonth, day);
 
@@ -876,13 +918,19 @@ function App() {
     });
   };
 
-
   return (
     <Box padding={10} margin={0}>
       <Grid container spacing={3}>
         <Grid padding={5} md={3}>
           <Item>
-            <ForecastTimeFrame onTimeFrameChange={handleTimeFrameChange} />
+            <ForecastTimeFrame
+              timeFrameStart={timeFrameStart}
+              timeFrameEnd={timeFrameEnd}
+              onTimeFrameStartChange={handleTimeFrameStart}
+              onTimeFrameEndChange={handleTimeFrameEnd}
+            />
+            <Button onClick={undo}>Undo</Button>
+
           </Item>
           <Grid padding={0} mt={5}>
             <CashIn

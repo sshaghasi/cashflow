@@ -1,5 +1,9 @@
 export interface ForecastTimeFrameProps {
-  onTimeFrameChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  timeFrameStart: string;
+  timeFrameEnd: string;
+  onTimeFrameStartChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onTimeFrameEndChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  
 }
 
 export interface OverviewTableProps {
@@ -52,7 +56,7 @@ export interface DateEntry {
 }
 
 export interface DateStates {
-  [date: string]: DateEntry;
+  [keys: string]: DateEntry;
 }
 
 export interface CashSubmitParam {
