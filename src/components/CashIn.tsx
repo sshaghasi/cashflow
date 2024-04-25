@@ -16,6 +16,8 @@ import TwiceYearSelection from "../services/TwiceYearSelection";
 import TwicePerMonth from "../services/TwicePerMonth";
 import YearlySelection from "../services/YearlySelection";
 
+import { v4 as uuidv4 } from "uuid";
+
 // Assuming CashProps is already defined appropriately in your types/interfaces
 const CashIn: React.FC<CashProps> = ({
   onSubmit,
@@ -31,20 +33,21 @@ const CashIn: React.FC<CashProps> = ({
   const [payOn, setPayOn] = useState<string>("");
   const [paymentFirstDate, setPaymentFirstDate] = useState<string>("");
   const [paymentSecondDate, setPaymentSecondDate] = useState<string>("");
-  const [paymentMonth, setPaymentMonth] = useState<string>("January");
-
-
+  const [paymentMonth, setPaymentMonth] = useState<string>("");
 
   const resetForm = () => {
     setSource("");
     setAmount("");
 
   };
-
+  
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
+    const submissionId = uuidv4();
+
     onSubmit({
+      id: submissionId,
       source,
       amount: parseFloat(amount), // Assuming amount is a number; ensure validation
       paymentDate,
@@ -61,7 +64,9 @@ const CashIn: React.FC<CashProps> = ({
   };
 
   const handleCashOut = () => {
+    const submissionId = uuidv4();
     onCashOutSubmit({
+      id: submissionId,
       source,
       amount: parseFloat(amount), // Ensure conversion from string to number if needed
       paymentDate,

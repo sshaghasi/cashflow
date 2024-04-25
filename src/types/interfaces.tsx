@@ -12,6 +12,7 @@ export interface OverviewTableProps {
 
 export interface CashProps {
   onSubmit: (data: {
+    id: string;
     source: string;
     amount: number;
     paymentDate: string;
@@ -24,6 +25,7 @@ export interface CashProps {
     payOn?: string;
   }) => void;
   onCashOutSubmit: (data: {
+    id: string;
     source: string;
     amount: number;
     paymentDate: string;
@@ -40,6 +42,7 @@ export interface CashProps {
 
 
 export interface CashEntry {
+  id: string;
   source: string;
   amount: number;
 }
@@ -60,6 +63,7 @@ export interface DateStates {
 }
 
 export interface CashSubmitParam {
+  id: string;
   source: string;
   amount: number;
   paymentDate: string;
@@ -70,4 +74,15 @@ export interface CashSubmitParam {
   paymentSecondDate: string;
   paymentMonth: string;
   payOn?: string;
+}
+
+export interface SubmissionEntry {
+  id: string;
+  source: string;
+  amount: number;
+  frequency: string;
+  startDate: string;
+  endDate: string;
+  paymentDate: string;
+  // Include other properties as needed
 }

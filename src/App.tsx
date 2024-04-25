@@ -15,18 +15,23 @@ import TabList from "@mui/joy/TabList";
 import Tabs from "@mui/joy/Tabs";
 import Tab from "@mui/joy/Tab";
 import TabPanel from "@mui/joy/TabPanel";
-import Button from "@mui/joy/Button";
 
-import { DateStates, CashSubmitParam } from "./types/interfaces";
-import { eachDayOfInterval, parseISO, format } from "date-fns";
+import {
+  DateStates,
+  CashSubmitParam,
+  SubmissionEntry,
+} from "./types/interfaces";
+import { eachDayOfInterval, parseISO, format, addDays, addWeeks, addMonths, addQuarters, addYears } from "date-fns";
+
 
 function App() {
   const [dateStates, setDateStates] = useState<DateStates>({});
   const dateRange = Object.keys(dateStates);
   const [timeFrameStart, setTimeFrameStart] = useState("");
   const [timeFrameEnd, setTimeFrameEnd] = useState("");
-  const [history, setHistory] = useState<DateStates[]>([]);
+  const [submissions, setSubmissions] = useState<SubmissionEntry[]>([]);
 
+  console.log(dateStates)
 
   const handleTimeFrameStart = (event: React.ChangeEvent<HTMLInputElement>) => {
     setTimeFrameStart(event.target.value);
@@ -44,25 +49,6 @@ function App() {
 
     return dateRange;
   }
-
-  const handleUpdateDateStates = (newDateStates: DateStates) => {
-    // Capture the current state in history before updating
-    setHistory((prevHistory) => [...prevHistory.slice(-10), dateStates]); // Keep last 10 states for example
-    setDateStates(newDateStates);
-  };
-
-  const undo = () => {
-    setHistory((prevHistory) => {
-      const newHistory = [...prevHistory];
-      const lastState = newHistory.pop(); // Remove the most recent state
-      if (lastState) {
-        setDateStates(lastState); // Revert to the most recent state
-      }
-      return newHistory; // Update history without the reverted state
-    });
-  };
-  
-  
 
   useEffect(() => {
     if (timeFrameStart && timeFrameEnd) {
@@ -118,6 +104,7 @@ function App() {
   }
 
   const handleCashInSubmit = ({
+    id,
     source,
     amount,
     paymentDate,
@@ -129,9 +116,12 @@ function App() {
     paymentMonth,
     payOn, // This assumes you've included "payOn" in your CashSubmitParam type
   }: CashSubmitParam) => {
+
     setDateStates((prevState) => {
       let updatedState = { ...prevState };
-      const newEntry = { source, amount };
+      const newEntry = { id, source, amount };
+
+      setSubmissions(currentSubmissions => [...currentSubmissions, { id, source, amount, paymentDate, frequency, startDate, endDate, paymentFirstDate, paymentSecondDate, paymentMonth, payOn }]);
 
       if (frequency === "Daily" && startDate && endDate) {
         const start = parseISO(startDate);
@@ -454,7 +444,7 @@ function App() {
                   cumulativeCashFlow: 0,
                 };
               }
-              updatedState[formattedDate].cashIn.push({ source, amount });
+              updatedState[formattedDate].cashIn.push({ id, source, amount });
             }
           });
 
@@ -513,6 +503,7 @@ function App() {
   };
 
   const handleCashOutSubmit = ({
+    id,
     source,
     amount,
     paymentDate,
@@ -524,19 +515,10 @@ function App() {
     paymentMonth,
     payOn, // This assumes you've included "payOn" in your CashSubmitParam type
   }: CashSubmitParam) => {
-    console.log({
-      source,
-      amount,
-      paymentDate,
-      frequency,
-      startDate,
-      endDate,
-      payOn,
-    }); // Before calling handleCashOutSubmit
 
     setDateStates((prevState) => {
       let updatedState = { ...prevState };
-      const newEntry = { source, amount };
+      const newEntry = { id, source, amount };
 
       if (frequency === "Daily" && startDate && endDate) {
         const start = new Date(startDate);
@@ -859,7 +841,7 @@ function App() {
                   cumulativeCashFlow: 0,
                 };
               }
-              updatedState[formattedDate].cashIn.push({ source, amount });
+              updatedState[formattedDate].cashIn.push({ id, source, amount });
             }
           });
 
@@ -918,6 +900,82 @@ function App() {
     });
   };
 
+
+  const handleUndoSubmission = (submissionId: string) => {
+    // Find the submission to undo
+    const submission = submissions.find(sub => sub.id === submissionId);
+    if (!submission) {
+      console.error("Submission not found");
+      return;
+    }
+  
+    setDateStates(prevState => {
+      const newState = { ...prevState };
+  
+      let datesToClear = [];
+      let currentDate = parseISO(submission.startDate);
+      const endDate = parseISO(submission.endDate);
+  
+      while (currentDate <= endDate) {
+        datesToClear.push(format(currentDate, 'yyyy-MM-dd'));
+  
+        switch (submission.frequency) {
+          case 'Daily':
+            currentDate = addDays(currentDate, 1);
+            break;
+          case 'Weekly':
+            currentDate = addWeeks(currentDate, 1);
+            break;
+          case 'Every 2 weeks':
+            currentDate = addWeeks(currentDate, 2);
+            break;
+          case 'Every 4 weeks':
+            currentDate = addWeeks(currentDate, 4);
+            break;
+          case 'Monthly':
+            currentDate = addMonths(currentDate, 1);
+            break;
+          case 'Every 2 months':
+            currentDate = addMonths(currentDate, 2);
+            break;
+          case 'Quarterly':
+            currentDate = addQuarters(currentDate, 1);
+            break;
+          case 'Twice per year':
+            currentDate = addMonths(currentDate, 6);
+            break;
+          case 'Yearly':
+            currentDate = addYears(currentDate, 1);
+            break;
+          case 'One-time':
+            datesToClear.push(format(parseISO(submission.paymentDate), 'yyyy-MM-dd'));
+            currentDate = addDays(currentDate, 1); // Move past end date to terminate loop
+            break;
+          default:
+            currentDate = addDays(currentDate, 1); // Default case to avoid infinite loops
+            break;
+        }
+      }
+  
+      // Remove the submission from each of the affected dates
+      for (const date of datesToClear) {
+        if (newState[date]) {
+          newState[date].cashIn = newState[date].cashIn.filter(entry => entry.id !== submissionId);
+          newState[date].cashOut = newState[date].cashOut.filter(entry => entry.id !== submissionId);
+        }
+      }
+  
+      // Recalculate net and cumulative cash flows after removing entries
+      return calculateAndUpdateNetCashFlow(newState);
+    });
+  
+    // Also remove the submission from the submissions list
+    setSubmissions(currentSubmissions => currentSubmissions.filter(sub => sub.id !== submissionId));
+  };
+  
+  
+
+
   return (
     <Box padding={10} margin={0}>
       <Grid container spacing={3}>
@@ -929,10 +987,17 @@ function App() {
               onTimeFrameStartChange={handleTimeFrameStart}
               onTimeFrameEndChange={handleTimeFrameEnd}
             />
-            <Button onClick={undo}>Undo</Button>
-
           </Item>
           <Grid padding={0} mt={5}>
+            <h2>Submissions</h2>
+            <ul>
+              {submissions.map((submission) => (
+                <li key={submission.id}>
+                  {submission.source} - ${submission.amount}
+                  <button onClick={() => handleUndoSubmission(submission.id)}>Undo</button>
+                </li>
+              ))}
+            </ul>
             <CashIn
               onSubmit={handleCashInSubmit}
               onCashOutSubmit={handleCashOutSubmit}
