@@ -23,6 +23,8 @@ import {
 } from "./types/interfaces";
 import { eachDayOfInterval, parseISO, format, addDays, addWeeks, addMonths, addQuarters, addYears, getDay, formatISO } from "date-fns";
 
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import PdfDocument from './components/PdfDocument'; // Import your PDF document component
 
 function App() {
   const [dateStates, setDateStates] = useState<DateStates>({});
@@ -158,7 +160,7 @@ function App() {
       } else if (frequency === "Weekly" && payOn && startDate && endDate) {
         const start = parseISO(startDate);
         const end = parseISO(endDate);
-        
+
 
         const dayIndex = [
           "Sunday",
@@ -193,20 +195,20 @@ function App() {
         const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
         const dayIndex = days.indexOf(payOn);
         let datesInRange = eachDayOfInterval({ start, end });
-      
+
         // Find the first occurrence of `payOn` after the start date
         const firstOccurrenceIndex = datesInRange.findIndex(date => getDay(date) === dayIndex);
         if (firstOccurrenceIndex !== -1) {
           // Calculate the initial occurrence date
           let currentDay = datesInRange[firstOccurrenceIndex];
           let biWeeklyDates = [];
-      
+
           // Collect all bi-weekly occurrences starting from the first found `payOn`
           while (currentDay <= end) {
             biWeeklyDates.push(currentDay);
             currentDay = addDays(currentDay, 14);  // Add 14 days for the bi-weekly interval
           }
-      
+
           // Process each bi-weekly date
           biWeeklyDates.forEach(date => {
             const formattedDate = format(date, 'yyyy-MM-dd');
@@ -221,16 +223,16 @@ function App() {
             updatedState[formattedDate].cashIn.push(newEntry);
           });
         }
-      
+
       } else if (frequency === "Every 4 weeks" && payOn && startDate && endDate) {
         const start = parseISO(startDate);
         const end = parseISO(endDate);
         const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
         const dayIndex = days.indexOf(payOn);
-      
+
         let datesInRange = generateDateRange(start, end);
         let datesToProcess: Date[] = [];
-      
+
         // Find the first occurrence of `payOn` after the start date and calculate subsequent occurrences every 4 weeks
         for (let i = 0; i < datesInRange.length; i++) {
           if (getDay(datesInRange[i]) === dayIndex) {
@@ -242,10 +244,10 @@ function App() {
             break;
           }
         }
-      
+
         datesToProcess.forEach((date) => {
           const formattedDate = formatISO(date, { representation: 'date' });
-      
+
           if (!updatedState[formattedDate]) {
             updatedState[formattedDate] = {
               cashIn: [],
@@ -503,13 +505,17 @@ function App() {
       let updatedState = { ...prevState };
       const newEntry = { id, source, amount };
 
+
       if (frequency === "Daily" && startDate && endDate) {
-        const start = new Date(startDate);
-        const end = new Date(endDate);
-        const datesInRange = generateDateRange(start, end);
+        const start = parseISO(startDate); // Parse the start date from ISO string
+        const end = parseISO(endDate);     // Parse the end date from ISO string
+
+        // Generate an array of dates from start to end
+        const datesInRange = eachDayOfInterval({ start, end });
 
         datesInRange.forEach((date) => {
-          const formattedDate = date.toISOString().split("T")[0];
+          const formattedDate = format(date, 'yyyy-MM-dd'); // Format date to YYYY-MM-DD
+
           if (!updatedState[formattedDate]) {
             updatedState[formattedDate] = {
               cashIn: [],
@@ -518,7 +524,7 @@ function App() {
               cumulativeCashFlow: 0,
             };
           }
-          updatedState[formattedDate].cashOut.push(newEntry);
+          updatedState[formattedDate].cashOut.push(newEntry); // Assuming this is for cashOut
         });
       } else if (frequency === "One-time" && paymentDate) {
         if (!updatedState[paymentDate]) {
@@ -529,7 +535,7 @@ function App() {
             cumulativeCashFlow: 0,
           };
         }
-        updatedState[paymentDate].cashIn.push(newEntry);
+        updatedState[paymentDate].cashOut.push(newEntry);
       } else if (frequency === "Weekly" && payOn && startDate && endDate) {
         const start = new Date(startDate);
 
@@ -890,21 +896,21 @@ function App() {
       console.error("Submission not found");
       return;
     }
-  
+
     setDateStates(prevState => {
       const newState = { ...prevState };
       let datesToClear = [];
-  
+
       // Directly handle the one-time event
       if (submission.frequency === 'One-time') {
         datesToClear.push(format(parseISO(submission.paymentDate), 'yyyy-MM-dd'));
       } else {
         let currentDate = parseISO(submission.startDate);
         const endDate = parseISO(submission.endDate);
-    
+
         while (currentDate <= endDate) {
           datesToClear.push(format(currentDate, 'yyyy-MM-dd'));
-    
+
           switch (submission.frequency) {
             case 'Daily':
               currentDate = addDays(currentDate, 1);
@@ -939,7 +945,7 @@ function App() {
           }
         }
       }
-  
+
       // Remove the submission from each of the affected dates
       for (const date of datesToClear) {
         if (newState[date]) {
@@ -947,15 +953,15 @@ function App() {
           newState[date].cashOut = newState[date].cashOut.filter(entry => entry.id !== submissionId);
         }
       }
-  
+
       // Recalculate net and cumulative cash flows after removing entries
       return calculateAndUpdateNetCashFlow(newState);
     });
-  
+
     // Also remove the submission from the submissions list
     setSubmissions(currentSubmissions => currentSubmissions.filter(sub => sub.id !== submissionId));
   };
-  
+
   return (
     <Box padding={10} margin={0}>
       <Grid container spacing={3}>
@@ -978,6 +984,15 @@ function App() {
                 </li>
               ))}
             </ul>
+            <PDFDownloadLink
+              document={<PdfDocument dateStates={dateStates} />}
+              fileName="detailed-report.pdf"
+              style={{ marginTop: '20px', textDecoration: 'none' }}
+            >
+              {({ blob, url, loading, error }) =>
+                loading ? 'Loading document...' : 'Download PDF'
+              }
+            </PDFDownloadLink>
             <CashIn
               onSubmit={handleCashInSubmit}
               onCashOutSubmit={handleCashOutSubmit}

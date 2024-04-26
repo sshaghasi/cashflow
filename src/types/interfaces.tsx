@@ -45,6 +45,7 @@ export interface CashEntry {
   id: string;
   source: string;
   amount: number;
+  type?: 'Cash-In' | 'Cash-Out';
 }
 
 export interface DisplayDataProps {
