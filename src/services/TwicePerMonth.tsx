@@ -5,6 +5,8 @@ import SecondPaymentSelect from './SecondPaymentSelect';
 import StartDateSelect from "./StartDateSelect";
 import EndDateSelect from "./EndDateSelect";
 
+import { parseISO, getDate, getDaysInMonth } from 'date-fns';
+
 interface TwicePerMonthProps {
   paymentFirstDate: string;
   setPaymentFirstDate: (date: string) => void;
@@ -17,15 +19,16 @@ interface TwicePerMonthProps {
   dateRange: string[];
 }
   
+
+
 const parseDayFromString = (dayString: string): number | 'Last Day' | undefined => {
-    if (dayString === 'Last Day') {
-      return 'Last Day';
-    }
-    const numericPart = dayString.replace(/\D/g, '');
-    const day = parseInt(numericPart, 10);
-    return isNaN(day) ? undefined : day;
-  };
-  
+  if (dayString === 'Last Day') {
+    return 'Last Day';
+  }
+  const numericPart = dayString.replace(/\D/g, '');
+  const day = parseInt(numericPart, 10);
+  return isNaN(day) ? undefined : day;
+};
 
 const TwicePerMonth: React.FC<TwicePerMonthProps> = ({
   paymentFirstDate,
@@ -43,12 +46,12 @@ const TwicePerMonth: React.FC<TwicePerMonthProps> = ({
   useEffect(() => {
     const firstDay = parseDayFromString(paymentFirstDate);
     const secondDay = parseDayFromString(paymentSecondDate);
-  
+
     const newFilteredRange = dateRange.filter(dateStr => {
-      const date = new Date(dateStr);
-      const dayOfMonth = date.getDate();
-      const lastDayOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
-  
+      const date = parseISO(dateStr);
+      const dayOfMonth = getDate(date);
+      const lastDayOfMonth = getDaysInMonth(date);
+
       return (
         (firstDay === 'Last Day' && dayOfMonth === lastDayOfMonth) ||
         (secondDay === 'Last Day' && dayOfMonth === lastDayOfMonth) ||
@@ -56,10 +59,9 @@ const TwicePerMonth: React.FC<TwicePerMonthProps> = ({
         (secondDay !== undefined && dayOfMonth === secondDay)
       );
     });
-  
+
     setFilteredDateRange(newFilteredRange);
   }, [paymentFirstDate, paymentSecondDate, dateRange]);
-  
 
   return (
     <>

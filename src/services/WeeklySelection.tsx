@@ -4,6 +4,7 @@ import { FormLabel } from "@mui/joy"; // Adjust import paths as necessary
 import PayOnSelect from "../services/PayOnSelect";
 import StartDateSelect from "../services/StartDateSelect";
 import EndDateSelect from "../services/EndDateSelect";
+import { parseISO, getDay } from 'date-fns';
 
 interface WeeklySelectionProps {
   payOn: string;
@@ -20,9 +21,9 @@ const filterDatesByDay = (dates: string[], dayOfWeek: string): string[] => {
   const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   const dayIndex = days.indexOf(dayOfWeek);
 
-  return dates.filter((dateString) => {
-    const date = new Date(dateString);
-    return date.getDay() === dayIndex;
+  return dates.filter(dateString => {
+    const date = parseISO(dateString);
+    return getDay(date) === dayIndex;
   });
 };
 

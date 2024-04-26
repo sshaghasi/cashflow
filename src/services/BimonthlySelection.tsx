@@ -3,6 +3,7 @@ import { FormLabel } from "@mui/joy";
 import FirstPaymentSelect from "./FirstPaymentSelect";
 import StartDateSelect from "./StartDateSelect";
 import EndDateSelect from "./EndDateSelect";
+import { format, parse, getMonth, getYear, getDate, lastDayOfMonth } from 'date-fns';
 
 interface BimonthlySelectionProps {
   paymentFirstDate: string;
@@ -26,41 +27,33 @@ const BimonthlySelection: React.FC<BimonthlySelectionProps> = ({
   const [filteredDateRange, setFilteredDateRange] = useState<string[]>([]);
 
   useEffect(() => {
-    const formatDateAsLocalYYYYMMDD = (date: Date) => {
-      const year = date.getFullYear();
-      const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Months are 0-indexed
-      const day = date.getDate().toString().padStart(2, '0');
-      return `${year}-${month}-${day}`;
+    const formatDateAsLocalYYYYMMDD = (date: Date): string => {
+      // Using date-fns to format the date
+      return format(date, 'yyyy-MM-dd');
     };
 
-    // Assume the base month is the month of the startDate. Adjust accordingly if needed.
-    const baseDate = new Date(startDate);
-    const baseMonth = baseDate.getMonth(); // Get the month of the base date (0-indexed)
+    // Parse the start date once and use it throughout
+    const baseDate = startDate ? parse(startDate, 'yyyy-MM-dd', new Date()) : new Date();
+    const baseMonth = getMonth(baseDate);
 
     const newFilteredRange = dateRange.map(dateString => {
-      const date = new Date(dateString);
-      console.log("Original Date: ", date);
+      const date = parse(dateString, 'yyyy-MM-dd', new Date());
       const formattedDate = formatDateAsLocalYYYYMMDD(date);
-      console.log("Formatted Date: ", formattedDate);
       return formattedDate;
     }).filter(formattedDate => {
-      const date = new Date(formattedDate);
-      // Calculate the month difference from the base month
-      const monthDiff = (date.getFullYear() - baseDate.getFullYear()) * 12 + date.getMonth() - baseMonth;
-      // Check if the month difference is a multiple of 2 (every two months)
+      const date = parse(formattedDate, 'yyyy-MM-dd', new Date());
+      const monthDiff = (getYear(date) - getYear(baseDate)) * 12 + getMonth(date) - baseMonth;
       const isEveryTwoMonths = monthDiff % 2 === 0;
 
       if (paymentFirstDate === "Last Day") {
-        // Include the date if it's the last day of the month and falls in the two-month interval
-        return isEveryTwoMonths && new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate() === date.getDate();
+        return isEveryTwoMonths && getDate(date) === getDate(lastDayOfMonth(date));
       }
       const dayOfMonth = parseInt(paymentFirstDate, 10);
-      // Include the date if it matches the payment day and falls in the two-month interval
-      return !isNaN(dayOfMonth) && isEveryTwoMonths && date.getDate() === dayOfMonth;
+      return !isNaN(dayOfMonth) && isEveryTwoMonths && getDate(date) === dayOfMonth;
     });
 
     setFilteredDateRange(newFilteredRange);
-    console.log(newFilteredRange)
+    console.log(newFilteredRange);
   }, [paymentFirstDate, dateRange, startDate]);
 
   return (
