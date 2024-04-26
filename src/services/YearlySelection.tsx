@@ -4,6 +4,7 @@ import PaymentMonth from "./PaymentMonth";
 import FirstPaymentSelect from "./FirstPaymentSelect";
 import StartDateSelect from "./StartDateSelect";
 import EndDateSelect from "./EndDateSelect";
+import { getMonth, getDate, lastDayOfMonth, parse } from 'date-fns';
 
 interface YearlySelectionProps {
   paymentMonth: string; // This is now a month name, e.g., "January"
@@ -30,25 +31,27 @@ const YearlySelection: React.FC<YearlySelectionProps> = ({
 }) => {
   const [filteredDateRange, setFilteredDateRange] = useState<string[]>([]);
 
-  useEffect(() => {
-    // Convert month name to its numeric value (0-11)
-    const targetMonth = new Date(`${paymentMonth} 1`).getMonth();
+useEffect(() => {
+  // Use date-fns parse to convert month name to a Date object then get the month index (0-11)
+  const targetMonth = getMonth(parse(`${paymentMonth} 1`, 'MMMM d', new Date()));
 
-    const targetDay = paymentFirstDate === "Last Day" ? -1 : parseInt(paymentFirstDate, 10);
+  const targetDay = paymentFirstDate === "Last Day" ? -1 : parseInt(paymentFirstDate, 10);
 
-    const newFilteredRange = dateRange.filter(dateStr => {
-      const date = new Date(dateStr);
-      const dayOfMonth = date.getDate();
-      const lastDayOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+  const newFilteredRange = dateRange.filter(dateStr => {
+    // Parse the date string assuming it's in 'yyyy-MM-dd' format, adjust format if necessary
+    const date = parse(dateStr, 'yyyy-MM-dd', new Date());
+    const dayOfMonth = getDate(date);
+    const lastDayOfMonthValue = lastDayOfMonth(date).getDate();
 
-      if (date.getMonth() !== targetMonth) return false;
+    if (getMonth(date) !== targetMonth) return false;
 
-      if (targetDay === -1) return dayOfMonth === lastDayOfMonth;
-      return dayOfMonth === targetDay;
-    });
+    if (targetDay === -1) return dayOfMonth === lastDayOfMonthValue;
+    return dayOfMonth === targetDay;
+  });
 
-    setFilteredDateRange(newFilteredRange);
-  }, [paymentMonth, paymentFirstDate, dateRange]);
+  setFilteredDateRange(newFilteredRange);
+}, [paymentMonth, paymentFirstDate, dateRange]);
+
 
   return (
     <>

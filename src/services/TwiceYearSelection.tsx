@@ -3,6 +3,8 @@ import { FormLabel } from "@mui/joy";
 import FirstPaymentSelect from "./FirstPaymentSelect";
 import StartDateSelect from "./StartDateSelect";
 import EndDateSelect from "./EndDateSelect";
+import { format, parse, getYear, getMonth, getDate, lastDayOfMonth } from 'date-fns';
+
 
 interface TwiceYearSelectionProps {
   paymentFirstDate: string;
@@ -25,36 +27,40 @@ const TwiceYearSelection: React.FC<TwiceYearSelectionProps> = ({
 }) => {
   const [filteredDateRange, setFilteredDateRange] = useState<string[]>([]);
 
-  useEffect(() => {
-    const formatDateAsLocalYYYYMMDD = (date: Date) => {
-      const year = date.getFullYear();
-      const month = (date.getMonth() + 1).toString().padStart(2, '0');
-      const day = date.getDate().toString().padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    };
+useEffect(() => {
+  const formatDateAsLocalYYYYMMDD = (date: Date) => {
+    // Using date-fns to format the date as YYYY-MM-DD
+    return format(date, 'yyyy-MM-dd');
+  };
 
-    const baseDate = new Date(startDate);
-    const baseMonth = baseDate.getMonth();
+  // Parsing the startDate and assuming it is in 'yyyy-MM-dd' format, adjust if necessary
+  const baseDate = parse(startDate, 'yyyy-MM-dd', new Date());
+  const baseMonth = getMonth(baseDate); // getMonth is zero-indexed
 
-    const newFilteredRange = dateRange.map(dateString => {
-      const date = new Date(dateString);
-      const formattedDate = formatDateAsLocalYYYYMMDD(date);
-      return formattedDate;
-    }).filter(formattedDate => {
-      const date = new Date(formattedDate);
-      const monthDiff = (date.getFullYear() - baseDate.getFullYear()) * 12 + date.getMonth() - baseMonth;
-      // Adjust here for semi-annual: Check if the month difference is a multiple of 6
-      const isSemiAnnual = monthDiff % 6 === 0;
+  const newFilteredRange = dateRange.map(dateString => {
+    // Parsing each date in the date range assuming they are in 'yyyy-MM-dd' format
+    const date = parse(dateString, 'yyyy-MM-dd', new Date());
+    const formattedDate = formatDateAsLocalYYYYMMDD(date);
+    return formattedDate;
+  }).filter(formattedDate => {
+    // Re-parsing to convert string back to date
+    const date = parse(formattedDate, 'yyyy-MM-dd', new Date());
+    // Calculate the month difference from the base month for semi-annual adjustment
+    const monthDiff = (getYear(date) - getYear(baseDate)) * 12 + getMonth(date) - baseMonth;
+    // Check if the month difference is a multiple of 6
+    const isSemiAnnual = monthDiff % 6 === 0;
 
-      if (paymentFirstDate === "Last Day") {
-        return isSemiAnnual && new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate() === date.getDate();
-      }
-      const dayOfMonth = parseInt(paymentFirstDate, 10);
-      return !isNaN(dayOfMonth) && isSemiAnnual && date.getDate() === dayOfMonth;
-    });
+    if (paymentFirstDate === "Last Day") {
+      // Check if it's the last day of the month and matches the semi-annual criteria
+      return isSemiAnnual && getDate(date) === getDate(lastDayOfMonth(date));
+    }
+    const dayOfMonth = parseInt(paymentFirstDate, 10);
+    // Check if it's the specific day of the month and matches the semi-annual criteria
+    return !isNaN(dayOfMonth) && isSemiAnnual && getDate(date) === dayOfMonth;
+  });
 
-    setFilteredDateRange(newFilteredRange);
-  }, [paymentFirstDate, dateRange, startDate]);
+  setFilteredDateRange(newFilteredRange);
+}, [paymentFirstDate, dateRange, startDate]);
 
   return (
     <>

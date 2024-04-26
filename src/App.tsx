@@ -893,49 +893,50 @@ function App() {
   
     setDateStates(prevState => {
       const newState = { ...prevState };
-  
       let datesToClear = [];
-      let currentDate = parseISO(submission.startDate);
-      const endDate = parseISO(submission.endDate);
   
-      while (currentDate <= endDate) {
-        datesToClear.push(format(currentDate, 'yyyy-MM-dd'));
-  
-        switch (submission.frequency) {
-          case 'Daily':
-            currentDate = addDays(currentDate, 1);
-            break;
-          case 'Weekly':
-            currentDate = addWeeks(currentDate, 1);
-            break;
-          case 'Every 2 weeks':
-            currentDate = addWeeks(currentDate, 2);
-            break;
-          case 'Every 4 weeks':
-            currentDate = addWeeks(currentDate, 4);
-            break;
-          case 'Monthly':
-            currentDate = addMonths(currentDate, 1);
-            break;
-          case 'Every 2 months':
-            currentDate = addMonths(currentDate, 2);
-            break;
-          case 'Quarterly':
-            currentDate = addQuarters(currentDate, 1);
-            break;
-          case 'Twice per year':
-            currentDate = addMonths(currentDate, 6);
-            break;
-          case 'Yearly':
-            currentDate = addYears(currentDate, 1);
-            break;
-          case 'One-time':
-            datesToClear.push(format(parseISO(submission.paymentDate), 'yyyy-MM-dd'));
-            currentDate = addDays(currentDate, 1); // Move past end date to terminate loop
-            break;
-          default:
-            currentDate = addDays(currentDate, 1); // Default case to avoid infinite loops
-            break;
+      // Directly handle the one-time event
+      if (submission.frequency === 'One-time') {
+        datesToClear.push(format(parseISO(submission.paymentDate), 'yyyy-MM-dd'));
+      } else {
+        let currentDate = parseISO(submission.startDate);
+        const endDate = parseISO(submission.endDate);
+    
+        while (currentDate <= endDate) {
+          datesToClear.push(format(currentDate, 'yyyy-MM-dd'));
+    
+          switch (submission.frequency) {
+            case 'Daily':
+              currentDate = addDays(currentDate, 1);
+              break;
+            case 'Weekly':
+              currentDate = addWeeks(currentDate, 1);
+              break;
+            case 'Every 2 weeks':
+              currentDate = addWeeks(currentDate, 2);
+              break;
+            case 'Every 4 weeks':
+              currentDate = addWeeks(currentDate, 4);
+              break;
+            case 'Monthly':
+              currentDate = addMonths(currentDate, 1);
+              break;
+            case 'Every 2 months':
+              currentDate = addMonths(currentDate, 2);
+              break;
+            case 'Quarterly':
+              currentDate = addQuarters(currentDate, 1);
+              break;
+            case 'Twice per year':
+              currentDate = addMonths(currentDate, 6);
+              break;
+            case 'Yearly':
+              currentDate = addYears(currentDate, 1);
+              break;
+            default:
+              currentDate = addDays(currentDate, 1); // Default case to avoid infinite loops
+              break;
+          }
         }
       }
   

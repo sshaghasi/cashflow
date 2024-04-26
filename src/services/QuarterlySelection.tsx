@@ -3,6 +3,7 @@ import { FormLabel } from "@mui/joy";
 import FirstPaymentSelect from "./FirstPaymentSelect";
 import StartDateSelect from "./StartDateSelect";
 import EndDateSelect from "./EndDateSelect";
+import { format, parse, getYear, getMonth, getDate, lastDayOfMonth } from 'date-fns';
 
 interface QuarterlySelectionProps {
   paymentFirstDate: string;
@@ -25,39 +26,37 @@ const QuarterlySelection: React.FC<QuarterlySelectionProps> = ({
 }) => {
   const [filteredDateRange, setFilteredDateRange] = useState<string[]>([]);
 
-  useEffect(() => {
-    const formatDateAsLocalYYYYMMDD = (date: Date) => {
-      const year = date.getFullYear();
-      const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Months are 0-indexed
-      const day = date.getDate().toString().padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    };
+useEffect(() => {
+  const formatDateAsLocalYYYYMMDD = (date: Date) => {
+    // Using date-fns to format the date as YYYY-MM-DD
+    return format(date, 'yyyy-MM-dd');
+  };
 
-    const baseDate = new Date(startDate);
-    const baseMonth = baseDate.getMonth(); // Get the month of the base date (0-indexed)
+  const baseDate = parse(startDate, 'yyyy-MM-dd', new Date());
+  const baseMonth = getMonth(baseDate); // Get the month of the base date (0-indexed)
 
-    const newFilteredRange = dateRange.map(dateString => {
-      const date = new Date(dateString);
-      console.log("Original Date: ", date);
-      const formattedDate = formatDateAsLocalYYYYMMDD(date);
-      console.log("Formatted Date: ", formattedDate);
-      return formattedDate;
-    }).filter(formattedDate => {
-      const date = new Date(formattedDate);
-      const monthDiff = (date.getFullYear() - baseDate.getFullYear()) * 12 + date.getMonth() - baseMonth;
-      // Adjust here for quarterly: Check if the month difference is a multiple of 3
-      const isQuarterly = monthDiff % 3 === 0;
+  const newFilteredRange = dateRange.map(dateString => {
+    const date = parse(dateString, 'yyyy-MM-dd', new Date());
+    console.log("Original Date: ", date);
+    const formattedDate = formatDateAsLocalYYYYMMDD(date);
+    console.log("Formatted Date: ", formattedDate);
+    return formattedDate;
+  }).filter(formattedDate => {
+    const date = parse(formattedDate, 'yyyy-MM-dd', new Date());
+    const monthDiff = (getYear(date) - getYear(baseDate)) * 12 + getMonth(date) - baseMonth;
+    // Check if the month difference is a multiple of 3 for quarterly
+    const isQuarterly = monthDiff % 3 === 0;
 
-      if (paymentFirstDate === "Last Day") {
-        return isQuarterly && new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate() === date.getDate();
-      }
-      const dayOfMonth = parseInt(paymentFirstDate, 10);
-      return !isNaN(dayOfMonth) && isQuarterly && date.getDate() === dayOfMonth;
-    });
+    if (paymentFirstDate === "Last Day") {
+      return isQuarterly && getDate(date) === getDate(lastDayOfMonth(date));
+    }
+    const dayOfMonth = parseInt(paymentFirstDate, 10);
+    return !isNaN(dayOfMonth) && isQuarterly && getDate(date) === dayOfMonth;
+  });
 
-    setFilteredDateRange(newFilteredRange);
-    console.log(newFilteredRange);
-  }, [paymentFirstDate, dateRange, startDate]);
+  setFilteredDateRange(newFilteredRange);
+  console.log(newFilteredRange);
+}, [paymentFirstDate, dateRange, startDate]);
 
   return (
     <>
