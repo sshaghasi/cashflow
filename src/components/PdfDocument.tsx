@@ -7,7 +7,13 @@ const styles = StyleSheet.create({
   page: {
     flexDirection: 'column',
     backgroundColor: '#FFF',
-    padding: 10,
+    padding: 40, // Add padding to create margins on all sides
+  },
+  tableContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'center', // Center the table horizontally
+    width: '100%', // Ensure the container takes full width of the page
   },
   table: {
     width: 700,
@@ -46,53 +52,125 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   tableCellWide: {
-    width: 100,
-    textAlign: 'right',
+    width: 120, // Width adjusted for wider cells
+    textAlign: 'center',
   },
 });
 
+interface Transaction {
+  id: string;
+  type?: 'Cash-In' | 'Cash-Out';
+  source: string;
+  amount: number;
+}
 
-const PdfDocument: React.FC<{ dateStates: DateStates }> = ({ dateStates }) => {
+interface DateStateEntry {
+  cashIn: Transaction[];
+  cashOut: Transaction[];
+  netCashFlow: number;
+  cumulativeCashFlow: number;
+}
+
+interface TransactionRow {
+  date: string;
+  transaction: Transaction;
+  index: number;
+}
+
+interface PdfDocumentProps {
+  dateStates: DateStates;
+}
+
+interface TableRow {
+  date: string;
+  transaction: Transaction | SummaryTransaction; // Transaction or a specific type for the summary
+  isFirst: boolean;
+}
+
+interface SummaryTransaction {
+  type: 'Summary';
+  source?: string;  // Assuming source might be optional for summary
+  amount: number;
+  cumulative: number;
+}
+
+const PdfDocument: React.FC<PdfDocumentProps> = ({ dateStates }) => {
+  const pages: TableRow[][] = [];
+  let currentRows: TableRow[] = [];
+  let count = 1;  // Start count at 1 to account for the header row
+
+  Object.entries(dateStates).forEach(([date, entry]) => {
+    const transactions = [...entry.cashIn.map(item => ({...item, type: 'Cash-In'} as Transaction)), 
+                           ...entry.cashOut.map(item => ({...item, type: 'Cash-Out'} as Transaction))];
+
+    transactions.forEach((transaction, index) => {
+      if (count >= 14) {  // Max 14 transaction rows per page to allow one summary row
+        pages.push(currentRows);
+        currentRows = [];
+        count = 1;
+      }
+
+      currentRows.push({ date, transaction, isFirst: index === 0 });
+      count++;
+    });
+
+    // Add a summary row
+    if (count >= 14) {
+      pages.push(currentRows);
+      currentRows = [];
+      count = 1;
+    }
+    const summary: SummaryTransaction = {
+      type: 'Summary',  // Not displayed but used for logical differentiation
+      amount: entry.netCashFlow,
+      cumulative: entry.cumulativeCashFlow
+    };
+    currentRows.push({ date, transaction: summary, isFirst: false });
+    count++;
+  });
+
+  if (currentRows.length > 0) {
+    pages.push(currentRows);
+  }
+
   return (
     <Document>
-      <Page size="A4" style={styles.page} orientation="landscape">
-        <View style={styles.table}>
-          <View style={styles.tableRow}>
-            <Text style={styles.tableCellHeader}>Date</Text>
-            <Text style={styles.tableCellHeader}>Type</Text>
-            <Text style={styles.tableCellHeader}>Source</Text>
-            <Text style={[styles.tableCellHeader, styles.tableCellWide]}>(+) Amount</Text>
-            <Text style={[styles.tableCellHeader, styles.tableCellWide]}>(-) Amount</Text>
-            <Text style={[styles.tableCellHeader, styles.tableCellWide]}>Net Cash Flow</Text>
-            <Text style={[styles.tableCellHeader, styles.tableCellWide]}>Cum. Cash Flow</Text>
+      {pages.map((pageRows, pageIndex) => (
+        <Page key={pageIndex} size="A4" style={styles.page} orientation="landscape">
+          <View style={styles.tableContainer}>
+            <View style={styles.table}>
+              <View style={styles.tableRow}>
+                <Text style={styles.tableCellHeader}>Date</Text>
+                <Text style={styles.tableCellHeader}>Type</Text>
+                <Text style={styles.tableCellHeader}>Source</Text>
+                <Text style={[styles.tableCellHeader, styles.tableCellWide]}>(+) Amount</Text>
+                <Text style={[styles.tableCellHeader, styles.tableCellWide]}>(-) Amount</Text>
+                <Text style={[styles.tableCellHeader, styles.tableCellWide]}>Net Cash Flow</Text>
+                <Text style={[styles.tableCellHeader, styles.tableCellWide]}>Cum. Cash Flow</Text>
+              </View>
+              {pageRows.map(({ date, transaction, isFirst }, index) => (
+                <View key={`${transaction.type}-${date}-${index}`} style={styles.tableRow}>
+                  <Text style={styles.tableCell}>{isFirst ? date : ''}</Text>
+                  <Text style={styles.tableCell}>{transaction.type !== 'Summary' ? transaction.type : ''}</Text>
+                  <Text style={styles.tableCell}>{transaction.source || ''}</Text>
+                  <Text style={[styles.tableCell, styles.tableCellWide]}>
+                    {transaction.type === 'Cash-In' ? `$${transaction.amount.toFixed(2)}` : ''}
+                  </Text>
+                  <Text style={[styles.tableCell, styles.tableCellWide]}>
+                    {transaction.type === 'Cash-Out' ? `($${transaction.amount.toFixed(2)})` : ''}
+                  </Text>
+                  <Text style={[styles.tableCell, styles.tableCellWide]}>
+                    {transaction.type === 'Summary' ? transaction.amount.toFixed(2) : ''}
+                  </Text>
+                  <Text style={[styles.tableCell, styles.tableCellWide]}>
+                    {transaction.type === 'Summary' ? transaction.cumulative.toFixed(2) : ''}
+                  </Text>
+                </View>
+              ))}
+            </View>
           </View>
-          {Object.entries(dateStates).map(([date, entry]) => {
-            const transactions = [...entry.cashIn.map(item => ({...item, type: 'Cash-In'})), 
-                                   ...entry.cashOut.map(item => ({...item, type: 'Cash-Out'}))];
-            return transactions.map((transaction, index) => (
-              <View key={`${transaction.type}-${date}-${index}`} style={styles.tableRow}>
-                <Text style={styles.tableCell}>{index === 0 ? date : ''}</Text>
-                <Text style={styles.tableCell}>{transaction.type}</Text>
-                <Text style={styles.tableCell}>{transaction.source}</Text>
-                <Text style={[styles.tableCell, styles.tableCellWide]}>
-                  {transaction.type === 'Cash-In' ? `$${transaction.amount.toFixed(2)}` : ''}
-                </Text>
-                <Text style={[styles.tableCell, styles.tableCellWide]}>
-                  {transaction.type === 'Cash-Out' ? `($${transaction.amount.toFixed(2)})` : ''}
-                </Text>
-                <Text style={[styles.tableCell, styles.tableCellWide]}></Text>
-                <Text style={[styles.tableCell, styles.tableCellWide]}></Text>
-              </View>
-            )).concat(
-              <View key={`summary-${date}`} style={styles.tableRow}>
-                <Text style={[styles.tableCell, { width: 500 }]}></Text>  // Adjust this width if necessary
-                <Text style={[styles.tableCell, styles.tableCellWide]}>{entry.netCashFlow.toFixed(2)}</Text>
-                <Text style={[styles.tableCell, styles.tableCellWide]}>{entry.cumulativeCashFlow.toFixed(2)}</Text>
-              </View>
-            );
-          })}
-        </View>
-      </Page>
+        </Page>
+      ))}
     </Document>
   );
 };
