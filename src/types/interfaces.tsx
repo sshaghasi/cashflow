@@ -85,5 +85,6 @@ export interface SubmissionEntry {
   startDate: string;
   endDate: string;
   paymentDate: string;
+  type: 'Cash-In' | 'Cash-Out'; // Add this line to distinguish between Cash In and Cash Out
   // Include other properties as needed
 }

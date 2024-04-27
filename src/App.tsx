@@ -152,6 +152,7 @@ function App() {
           paymentSecondDate,
           paymentMonth,
           payOn,
+          type: 'Cash-In',
         },
       ]);
 
@@ -570,6 +571,7 @@ function App() {
           paymentSecondDate,
           paymentMonth,
           payOn,
+          type: 'Cash-Out',
         },
       ]);
 
