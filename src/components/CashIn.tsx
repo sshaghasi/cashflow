@@ -24,6 +24,7 @@ const CashIn: React.FC<CashProps> = ({
   onCashOutSubmit,
   dateRange,
 }) => {
+  const [resetKey, setResetKey] = useState(0); // Key to force re-render
   const [source, setSource] = useState<string>("");
   const [amount, setAmount] = useState<string>("");
   const [paymentDate, setPaymentDate] = useState<string>("");
@@ -46,9 +47,9 @@ const CashIn: React.FC<CashProps> = ({
     setPaymentFirstDate("")
     setPaymentSecondDate("")
     setPaymentMonth("")
-
+    setResetKey(prevKey => prevKey + 1); // Increment key to force re-render
   };
-  
+
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -90,13 +91,15 @@ const CashIn: React.FC<CashProps> = ({
     resetForm(); // Reset form fields after Cash Out submission
   };
 
-  useEffect(() => {
+useEffect(() => {
+    // Dependency array now includes resetKey to react to its changes
     if (dateRange && dateRange.length > 0) {
       setPaymentDate(dateRange[0]);
       setStartDate(dateRange[0]);
-      setEndDate(dateRange[dateRange.length]);
+      setEndDate(dateRange[dateRange.length - 1]); // Fixed to access last element properly
     }
-  }, [dateRange]);
+  }, [dateRange, resetKey]); // React to changes in dateRange and resetKey
+
 
   const renderConditionalInputs = () => {
     switch (frequency) {
@@ -266,7 +269,7 @@ const CashIn: React.FC<CashProps> = ({
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} key={resetKey}>
       <Stack spacing={0.5} direction="column">
         <Typography level="h1">Cash In & Out</Typography>
         <FormLabel>Source</FormLabel>

@@ -1065,18 +1065,18 @@ function App() {
             <Grid sx={{ mt: 7 }}>
               <Tabs aria-label="Basic tabs" defaultValue={0}>
                 <TabList>
+                  <Tab>Entries</Tab>
                   <Tab>Overview</Tab>
                   <Tab>Detailed</Tab>
-                  <Tab>Entries</Tab>
                 </TabList>
                 <TabPanel value={0}>
-                  <OverviewTable dateStates={dateStates} />
+                  <Entries submissions={submissions} handleUndoSubmission={handleUndoSubmission} />
                 </TabPanel>
                 <TabPanel value={1}>
-                  <DetailedTable dateStates={dateStates} />
+                  <OverviewTable dateStates={dateStates} />
                 </TabPanel>
                 <TabPanel value={2}>
-                  <Entries submissions={submissions} handleUndoSubmission={handleUndoSubmission} />
+                  <DetailedTable dateStates={dateStates} />
                 </TabPanel>
               </Tabs>
             </Grid>
