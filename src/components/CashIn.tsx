@@ -38,6 +38,14 @@ const CashIn: React.FC<CashProps> = ({
   const resetForm = () => {
     setSource("");
     setAmount("");
+    setPaymentDate("");
+    setFrequency("One-time")
+    setStartDate("")
+    setEndDate("")
+    setPayOn("")
+    setPaymentFirstDate("")
+    setPaymentSecondDate("")
+    setPaymentMonth("")
 
   };
   

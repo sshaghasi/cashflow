@@ -7,6 +7,7 @@ import MyDivider from "./components/MyDivider";
 import ForecastTimeFrame from "./components/ForecastTimeFrame";
 import DetailedTable from "./components/DetailedTable";
 import OverviewTable from "./components/OverviewTable";
+import Entries from "./components/Entries";
 
 import Box from "@mui/system/Box";
 import Grid from "@mui/joy/Grid";
@@ -15,16 +16,28 @@ import TabList from "@mui/joy/TabList";
 import Tabs from "@mui/joy/Tabs";
 import Tab from "@mui/joy/Tab";
 import TabPanel from "@mui/joy/TabPanel";
+import Button from "@mui/joy/Button";
 
 import {
   DateStates,
   CashSubmitParam,
   SubmissionEntry,
 } from "./types/interfaces";
-import { eachDayOfInterval, parseISO, format, addDays, addWeeks, addMonths, addQuarters, addYears, getDay, formatISO } from "date-fns";
+import {
+  eachDayOfInterval,
+  parseISO,
+  format,
+  addDays,
+  addWeeks,
+  addMonths,
+  addQuarters,
+  addYears,
+  getDay,
+  formatISO,
+} from "date-fns";
 
-import { PDFDownloadLink } from '@react-pdf/renderer';
-import PdfDocument from './components/PdfDocument'; // Import your PDF document component
+import { PDFDownloadLink } from "@react-pdf/renderer";
+import PdfDocument from "./components/PdfDocument"; // Import your PDF document component
 
 function App() {
   const [dateStates, setDateStates] = useState<DateStates>({});
@@ -81,7 +94,6 @@ function App() {
     let previousCumulativeCashFlow = 0; // Initialize previous day's cumulative cash flow
 
     dates.forEach((date) => {
-
       const dateEntry = updatedDateStates[date];
 
       const totalCashIn = dateEntry.cashIn.reduce(
@@ -122,12 +134,26 @@ function App() {
     paymentMonth,
     payOn, // This assumes you've included "payOn" in your CashSubmitParam type
   }: CashSubmitParam) => {
-
     setDateStates((prevState) => {
       let updatedState = { ...prevState };
       const newEntry = { id, source, amount };
 
-      setSubmissions(currentSubmissions => [...currentSubmissions, { id, source, amount, paymentDate, frequency, startDate, endDate, paymentFirstDate, paymentSecondDate, paymentMonth, payOn }]);
+      setSubmissions((currentSubmissions) => [
+        ...currentSubmissions,
+        {
+          id,
+          source,
+          amount,
+          paymentDate,
+          frequency,
+          startDate,
+          endDate,
+          paymentFirstDate,
+          paymentSecondDate,
+          paymentMonth,
+          payOn,
+        },
+      ]);
 
       if (frequency === "Daily" && startDate && endDate) {
         const start = parseISO(startDate);
@@ -161,7 +187,6 @@ function App() {
         const start = parseISO(startDate);
         const end = parseISO(endDate);
 
-
         const dayIndex = [
           "Sunday",
           "Monday",
@@ -189,15 +214,30 @@ function App() {
           }
           updatedState[formattedDate].cashIn.push(newEntry);
         });
-      } else if (frequency === "Every 2 weeks" && payOn && startDate && endDate) {
+      } else if (
+        frequency === "Every 2 weeks" &&
+        payOn &&
+        startDate &&
+        endDate
+      ) {
         const start = parseISO(startDate);
         const end = parseISO(endDate);
-        const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        const days = [
+          "Sunday",
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday",
+        ];
         const dayIndex = days.indexOf(payOn);
         let datesInRange = eachDayOfInterval({ start, end });
 
         // Find the first occurrence of `payOn` after the start date
-        const firstOccurrenceIndex = datesInRange.findIndex(date => getDay(date) === dayIndex);
+        const firstOccurrenceIndex = datesInRange.findIndex(
+          (date) => getDay(date) === dayIndex
+        );
         if (firstOccurrenceIndex !== -1) {
           // Calculate the initial occurrence date
           let currentDay = datesInRange[firstOccurrenceIndex];
@@ -206,12 +246,12 @@ function App() {
           // Collect all bi-weekly occurrences starting from the first found `payOn`
           while (currentDay <= end) {
             biWeeklyDates.push(currentDay);
-            currentDay = addDays(currentDay, 14);  // Add 14 days for the bi-weekly interval
+            currentDay = addDays(currentDay, 14); // Add 14 days for the bi-weekly interval
           }
 
           // Process each bi-weekly date
-          biWeeklyDates.forEach(date => {
-            const formattedDate = format(date, 'yyyy-MM-dd');
+          biWeeklyDates.forEach((date) => {
+            const formattedDate = format(date, "yyyy-MM-dd");
             if (!updatedState[formattedDate]) {
               updatedState[formattedDate] = {
                 cashIn: [],
@@ -223,11 +263,23 @@ function App() {
             updatedState[formattedDate].cashIn.push(newEntry);
           });
         }
-
-      } else if (frequency === "Every 4 weeks" && payOn && startDate && endDate) {
+      } else if (
+        frequency === "Every 4 weeks" &&
+        payOn &&
+        startDate &&
+        endDate
+      ) {
         const start = parseISO(startDate);
         const end = parseISO(endDate);
-        const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        const days = [
+          "Sunday",
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday",
+        ];
         const dayIndex = days.indexOf(payOn);
 
         let datesInRange = generateDateRange(start, end);
@@ -246,7 +298,7 @@ function App() {
         }
 
         datesToProcess.forEach((date) => {
-          const formattedDate = formatISO(date, { representation: 'date' });
+          const formattedDate = formatISO(date, { representation: "date" });
 
           if (!updatedState[formattedDate]) {
             updatedState[formattedDate] = {
@@ -500,12 +552,26 @@ function App() {
     paymentMonth,
     payOn, // This assumes you've included "payOn" in your CashSubmitParam type
   }: CashSubmitParam) => {
-
     setDateStates((prevState) => {
       let updatedState = { ...prevState };
       const newEntry = { id, source, amount };
 
-      setSubmissions(currentSubmissions => [...currentSubmissions, { id, source, amount, paymentDate, frequency, startDate, endDate, paymentFirstDate, paymentSecondDate, paymentMonth, payOn }]);
+      setSubmissions((currentSubmissions) => [
+        ...currentSubmissions,
+        {
+          id,
+          source,
+          amount,
+          paymentDate,
+          frequency,
+          startDate,
+          endDate,
+          paymentFirstDate,
+          paymentSecondDate,
+          paymentMonth,
+          payOn,
+        },
+      ]);
 
       if (frequency === "Daily" && startDate && endDate) {
         const start = parseISO(startDate);
@@ -539,7 +605,6 @@ function App() {
         const start = parseISO(startDate);
         const end = parseISO(endDate);
 
-
         const dayIndex = [
           "Sunday",
           "Monday",
@@ -567,15 +632,30 @@ function App() {
           }
           updatedState[formattedDate].cashOut.push(newEntry);
         });
-      } else if (frequency === "Every 2 weeks" && payOn && startDate && endDate) {
+      } else if (
+        frequency === "Every 2 weeks" &&
+        payOn &&
+        startDate &&
+        endDate
+      ) {
         const start = parseISO(startDate);
         const end = parseISO(endDate);
-        const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        const days = [
+          "Sunday",
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday",
+        ];
         const dayIndex = days.indexOf(payOn);
         let datesInRange = eachDayOfInterval({ start, end });
 
         // Find the first occurrence of `payOn` after the start date
-        const firstOccurrenceIndex = datesInRange.findIndex(date => getDay(date) === dayIndex);
+        const firstOccurrenceIndex = datesInRange.findIndex(
+          (date) => getDay(date) === dayIndex
+        );
         if (firstOccurrenceIndex !== -1) {
           // Calculate the initial occurrence date
           let currentDay = datesInRange[firstOccurrenceIndex];
@@ -584,12 +664,12 @@ function App() {
           // Collect all bi-weekly occurrences starting from the first found `payOn`
           while (currentDay <= end) {
             biWeeklyDates.push(currentDay);
-            currentDay = addDays(currentDay, 14);  // Add 14 days for the bi-weekly interval
+            currentDay = addDays(currentDay, 14); // Add 14 days for the bi-weekly interval
           }
 
           // Process each bi-weekly date
-          biWeeklyDates.forEach(date => {
-            const formattedDate = format(date, 'yyyy-MM-dd');
+          biWeeklyDates.forEach((date) => {
+            const formattedDate = format(date, "yyyy-MM-dd");
             if (!updatedState[formattedDate]) {
               updatedState[formattedDate] = {
                 cashIn: [],
@@ -601,11 +681,23 @@ function App() {
             updatedState[formattedDate].cashOut.push(newEntry);
           });
         }
-
-      } else if (frequency === "Every 4 weeks" && payOn && startDate && endDate) {
+      } else if (
+        frequency === "Every 4 weeks" &&
+        payOn &&
+        startDate &&
+        endDate
+      ) {
         const start = parseISO(startDate);
         const end = parseISO(endDate);
-        const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        const days = [
+          "Sunday",
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday",
+        ];
         const dayIndex = days.indexOf(payOn);
 
         let datesInRange = generateDateRange(start, end);
@@ -624,7 +716,7 @@ function App() {
         }
 
         datesToProcess.forEach((date) => {
-          const formattedDate = formatISO(date, { representation: 'date' });
+          const formattedDate = formatISO(date, { representation: "date" });
 
           if (!updatedState[formattedDate]) {
             updatedState[formattedDate] = {
@@ -867,52 +959,54 @@ function App() {
 
   const handleUndoSubmission = (submissionId: string) => {
     // Find the submission to undo
-    const submission = submissions.find(sub => sub.id === submissionId);
+    const submission = submissions.find((sub) => sub.id === submissionId);
     if (!submission) {
       console.error("Submission not found");
       return;
     }
 
-    setDateStates(prevState => {
+    setDateStates((prevState) => {
       const newState = { ...prevState };
       let datesToClear = [];
 
       // Directly handle the one-time event
-      if (submission.frequency === 'One-time') {
-        datesToClear.push(format(parseISO(submission.paymentDate), 'yyyy-MM-dd'));
+      if (submission.frequency === "One-time") {
+        datesToClear.push(
+          format(parseISO(submission.paymentDate), "yyyy-MM-dd")
+        );
       } else {
         let currentDate = parseISO(submission.startDate);
         const endDate = parseISO(submission.endDate);
 
         while (currentDate <= endDate) {
-          datesToClear.push(format(currentDate, 'yyyy-MM-dd'));
+          datesToClear.push(format(currentDate, "yyyy-MM-dd"));
 
           switch (submission.frequency) {
-            case 'Daily':
+            case "Daily":
               currentDate = addDays(currentDate, 1);
               break;
-            case 'Weekly':
+            case "Weekly":
               currentDate = addWeeks(currentDate, 1);
               break;
-            case 'Every 2 weeks':
+            case "Every 2 weeks":
               currentDate = addWeeks(currentDate, 2);
               break;
-            case 'Every 4 weeks':
+            case "Every 4 weeks":
               currentDate = addWeeks(currentDate, 4);
               break;
-            case 'Monthly':
+            case "Monthly":
               currentDate = addMonths(currentDate, 1);
               break;
-            case 'Every 2 months':
+            case "Every 2 months":
               currentDate = addMonths(currentDate, 2);
               break;
-            case 'Quarterly':
+            case "Quarterly":
               currentDate = addQuarters(currentDate, 1);
               break;
-            case 'Twice per year':
+            case "Twice per year":
               currentDate = addMonths(currentDate, 6);
               break;
-            case 'Yearly':
+            case "Yearly":
               currentDate = addYears(currentDate, 1);
               break;
             default:
@@ -925,8 +1019,12 @@ function App() {
       // Remove the submission from each of the affected dates
       for (const date of datesToClear) {
         if (newState[date]) {
-          newState[date].cashIn = newState[date].cashIn.filter(entry => entry.id !== submissionId);
-          newState[date].cashOut = newState[date].cashOut.filter(entry => entry.id !== submissionId);
+          newState[date].cashIn = newState[date].cashIn.filter(
+            (entry) => entry.id !== submissionId
+          );
+          newState[date].cashOut = newState[date].cashOut.filter(
+            (entry) => entry.id !== submissionId
+          );
         }
       }
 
@@ -935,7 +1033,9 @@ function App() {
     });
 
     // Also remove the submission from the submissions list
-    setSubmissions(currentSubmissions => currentSubmissions.filter(sub => sub.id !== submissionId));
+    setSubmissions((currentSubmissions) =>
+      currentSubmissions.filter((sub) => sub.id !== submissionId)
+    );
   };
 
   return (
@@ -951,24 +1051,6 @@ function App() {
             />
           </Item>
           <Grid padding={0} mt={5}>
-            <h2>Submissions</h2>
-            <ul>
-              {submissions.map((submission) => (
-                <li key={submission.id}>
-                  {submission.source} - ${submission.amount}
-                  <button onClick={() => handleUndoSubmission(submission.id)}>Undo</button>
-                </li>
-              ))}
-            </ul>
-            <PDFDownloadLink
-              document={<PdfDocument dateStates={dateStates} />}
-              fileName="detailed-report.pdf"
-              style={{ marginTop: '20px', textDecoration: 'none' }}
-            >
-              {({ blob, url, loading, error }) =>
-                loading ? 'Loading document...' : 'Download PDF'
-              }
-            </PDFDownloadLink>
             <CashIn
               onSubmit={handleCashInSubmit}
               onCashOutSubmit={handleCashOutSubmit}
@@ -983,12 +1065,16 @@ function App() {
                 <TabList>
                   <Tab>Overview</Tab>
                   <Tab>Detailed</Tab>
+                  <Tab>Entries</Tab>
                 </TabList>
                 <TabPanel value={0}>
                   <OverviewTable dateStates={dateStates} />
                 </TabPanel>
                 <TabPanel value={1}>
                   <DetailedTable dateStates={dateStates} />
+                </TabPanel>
+                <TabPanel value={2}>
+                  <Entries submissions={submissions} handleUndoSubmission={handleUndoSubmission} />
                 </TabPanel>
               </Tabs>
             </Grid>
@@ -998,6 +1084,22 @@ function App() {
           <Grid container direction="column">
             <Grid>
               <Item>
+              <Button
+              color="primary"
+              disabled={false}
+              loading={false}
+              size="sm"
+              variant="solid"
+            >
+              <PDFDownloadLink
+                document={<PdfDocument dateStates={dateStates} />}
+                fileName="detailed-report.pdf"
+                style={{color:'white'}}>
+                {({ blob, url, loading, error }) =>
+                  loading ? "Loading document..." : "Download PDF"
+                }
+              </PDFDownloadLink>
+            </Button>
                 <MyDivider />
               </Item>
             </Grid>

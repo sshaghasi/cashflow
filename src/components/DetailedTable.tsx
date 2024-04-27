@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import Table from "@mui/joy/Table";
 import Sheet from "@mui/joy/Sheet";
 
@@ -11,7 +11,7 @@ interface DetailedTableProps {
 
 const DetailedTable: React.FC<DetailedTableProps> = ({ dateStates }) => {
   return (
-    <Sheet style={{ height: 500, overflow: 'auto' }}>
+    <Sheet style={{ height: 500, overflow: "auto" }}>
       <Table stickyHeader aria-label="Detailed Cash Flow Table">
         <thead>
           <tr>
@@ -30,21 +30,35 @@ const DetailedTable: React.FC<DetailedTableProps> = ({ dateStates }) => {
               return null; // Skip rendering rows for this date if no data
             }
 
-            const transactions = [...entry.cashIn.map(item => ({...item, type: 'Cash-In'})), 
-                                   ...entry.cashOut.map(item => ({...item, type: 'Cash-Out'}))];
-            const totalRowsForDate = transactions.length + 1; // +1 for the summary row
-            
+            const transactions = [
+              ...entry.cashIn.map((item) => ({ ...item, type: "Cash-In" })),
+              ...entry.cashOut.map((item) => ({ ...item, type: "Cash-Out" })),
+            ];
+
             return (
               <>
                 {transactions.map((transaction, index) => (
                   <tr key={`${transaction.type}-${date}-${index}`}>
-                    <td>{index === 0 ? date : ''}</td>
+                    <td>{index === 0 ? date : ""}</td>
                     <td>{transaction.type}</td>
                     <td>{transaction.source}</td>
-                    <td>{transaction.type === 'Cash-In' ? transaction.amount.toFixed(2) : ''}</td>
-                    <td>{transaction.type === 'Cash-Out' ? `(${transaction.amount.toFixed(2)})` : ''}</td>
+                    <td>
+                      {transaction.type === "Cash-In"
+                        ? transaction.amount.toFixed(2)
+                        : ""}
+                    </td>
+                    <td>
+                      {transaction.type === "Cash-Out"
+                        ? `(${transaction.amount.toFixed(2)})`
+                        : ""}
+                    </td>
                     {/* Empty cells for Net Cash Flow and Cumulative Cash Flow, to be filled in the summary row */}
-                    {index === 0 ? <><td></td><td></td></> : null}
+                    {index === 0 ? (
+                      <>
+                        <td></td>
+                        <td></td>
+                      </>
+                    ) : null}
                   </tr>
                 ))}
                 {/* Separate summary row for net and cumulative cash flow */}

@@ -1,7 +1,7 @@
 import React from 'react';
 import Select from '@mui/joy/Select';
 import Option from '@mui/joy/Option';
-import Input from '@mui/joy/Input'
+
 
 interface PaymentDateProps {
   dateRange: string[];
@@ -23,7 +23,7 @@ const PaymentDate: React.FC<PaymentDateProps> = ({
 
   return (
     <Select
-      defaultValue={defaultValue}
+      value={defaultValue}
       onChange={handleChange}
       color="primary"
       size="sm"
