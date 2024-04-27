@@ -66,13 +66,13 @@ useEffect(() => {
       <StartDateSelect
         dateRange={filteredDateRange}
         setStartDate={setStartDate}
-        defaultValue={startDate}
+        value={startDate}
       />
       <FormLabel>End Date</FormLabel>
       <EndDateSelect
         dateRange={filteredDateRange}
         setEndDate={setEndDate}
-        defaultValue={endDate}
+        value={endDate}
       />
     </>
   );

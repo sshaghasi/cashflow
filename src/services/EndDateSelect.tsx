@@ -5,13 +5,13 @@ import Option from '@mui/joy/Option';
 interface EndDateSelectProps {
   dateRange: string[];
   setEndDate: (date: string) => void;
-  defaultValue: string;
+  value: string;
 }
 
 const EndDateSelect: React.FC<EndDateSelectProps> = ({
   dateRange,
   setEndDate,
-  defaultValue,
+  value,
 }) => {
   const handleChange = (event: React.SyntheticEvent | null, newValue: string | null) => {
     // Update the parent component's startDate state
@@ -22,7 +22,7 @@ const EndDateSelect: React.FC<EndDateSelectProps> = ({
 
   return (
     <Select
-      defaultValue={defaultValue}
+      value={value}
       onChange={handleChange}
       color="primary"
       size="sm"

@@ -64,13 +64,13 @@ const MonthlySelection: React.FC<MonthlySelectionProps> = ({
       <StartDateSelect
         dateRange={filteredDateRange} // Pass the correctly formatted and filtered dates
         setStartDate={setStartDate}
-        defaultValue={startDate}
+        value={startDate}
       />
       <FormLabel>End Date</FormLabel>
       <EndDateSelect
         dateRange={filteredDateRange} // Similarly for End Date
         setEndDate={setEndDate}
-        defaultValue={endDate}
+        value={endDate}
       />
     </>
   );

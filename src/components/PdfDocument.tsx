@@ -100,6 +100,9 @@ const PdfDocument: React.FC<PdfDocumentProps> = ({ dateStates }) => {
   let count = 1;  // Start count at 1 to account for the header row
 
   Object.entries(dateStates).forEach(([date, entry]) => {
+    // Skip dates with no entries
+    if (entry.cashIn.length === 0 && entry.cashOut.length === 0) return;
+
     const transactions = [...entry.cashIn.map(item => ({...item, type: 'Cash-In'} as Transaction)), 
                            ...entry.cashOut.map(item => ({...item, type: 'Cash-Out'} as Transaction))];
 

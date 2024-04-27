@@ -121,13 +121,13 @@ useEffect(() => {
             <StartDateSelect
               dateRange={dateRange} // This prop is passed down from App
               setStartDate={setStartDate}
-              defaultValue={startDate} // Ensure this is managed if you want a default value
+              value={startDate} // Ensure this is managed if you want a default value
             />
             <FormLabel>End Date</FormLabel>
             <EndDateSelect
               dateRange={dateRange}
               setEndDate={setEndDate}
-              defaultValue={endDate}
+              value={endDate}
             />
           </>
         );

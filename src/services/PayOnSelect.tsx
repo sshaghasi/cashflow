@@ -3,12 +3,12 @@ import Select from "@mui/joy/Select";
 import Option from "@mui/joy/Option";
 
 interface PayOnSelectProps {
-  defaultValue: string;
+  value: string;
   setPayOn: (payOn: string) => void;
 }
 
 const PayOnSelect: React.FC<PayOnSelectProps> = ({
-  defaultValue,
+  value,
   setPayOn,
 }) => {
   const handleChange = (
@@ -23,7 +23,7 @@ const PayOnSelect: React.FC<PayOnSelectProps> = ({
 
   return (
     <Select
-      defaultValue={defaultValue}
+      value={value}
       onChange={handleChange}
       color="primary"
       size="sm"

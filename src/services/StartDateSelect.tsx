@@ -5,25 +5,24 @@ import Option from '@mui/joy/Option';
 interface StartDateSelectProps {
   dateRange: string[];
   setStartDate: (date: string) => void;
-  defaultValue: string;
+  value: string;
 }
 
 const StartDateSelect: React.FC<StartDateSelectProps> = ({
   dateRange,
   setStartDate,
-  defaultValue,
+  value,
 }) => {
   const handleChange = (event: React.SyntheticEvent | null, newValue: string | null) => {
     // Update the parent component's startDate state
     if (newValue) {
       setStartDate(newValue);
     }
-    console.log(newValue)
   };
   
   return (
     <Select
-      defaultValue={defaultValue}
+      value={value}
       onChange={handleChange}
       color="primary"
       size="sm"

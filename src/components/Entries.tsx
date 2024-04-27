@@ -12,6 +12,7 @@ interface Submission {
   frequency: string;
   startDate: string;
   endDate: string;
+  paymentDate: string;
   type: 'Cash-In' | 'Cash-Out'; // Add this line to distinguish between Cash In and Cash Out
 }
 
@@ -45,8 +46,8 @@ const Entries: React.FC<EntriesProps> = ({
               <td>{submission.type}</td>
               <td>${submission.amount.toFixed(2)}</td>
               <td>{submission.frequency}</td>
-              <td>{submission.startDate}</td>
-              <td>{submission.endDate}</td>
+              <td>{submission.frequency === 'One-time' ? submission.paymentDate : submission.startDate}</td>
+              <td>{submission.frequency === 'One-time' ? submission.paymentDate : submission.endDate}</td>
               <td>
                 <IconButton
                   color="danger"

@@ -37,6 +37,7 @@ const WeeklySelection: React.FC<WeeklySelectionProps> = ({
   setStartDate,
   endDate,
   setEndDate,
+  
 }) => {
   // Filter dateRange based on the selected payOn day
   const filteredDateRange = filterDatesByDay(dateRange, payOn);
@@ -44,18 +45,18 @@ const WeeklySelection: React.FC<WeeklySelectionProps> = ({
   return (
     <>
       <FormLabel>Pay on</FormLabel>
-      <PayOnSelect defaultValue={payOn} setPayOn={setPayOn} />
+      <PayOnSelect value={payOn} setPayOn={setPayOn} />
       <FormLabel>Start Date</FormLabel>
       <StartDateSelect
         dateRange={filteredDateRange} // Pass the filtered dates
         setStartDate={setStartDate}
-        defaultValue={startDate}
+        value={startDate}
       />
       <FormLabel>End Date</FormLabel>
       <EndDateSelect
         dateRange={filteredDateRange} // Pass the filtered dates
         setEndDate={setEndDate}
-        defaultValue={endDate}
+        value={endDate}
       />
     </>
   );

@@ -60,9 +60,9 @@ useEffect(() => {
       <FormLabel>First payment date</FormLabel>
       <FirstPaymentSelect defaultValue={paymentFirstDate} setPaymentFirstDate={setPaymentFirstDate} />
       <FormLabel>Start Date</FormLabel>
-      <StartDateSelect dateRange={filteredDateRange} setStartDate={setStartDate} defaultValue={startDate} />
+      <StartDateSelect dateRange={filteredDateRange} setStartDate={setStartDate} value={startDate} />
       <FormLabel>End Date</FormLabel>
-      <EndDateSelect dateRange={filteredDateRange} setEndDate={setEndDate} defaultValue={endDate} />
+      <EndDateSelect dateRange={filteredDateRange} setEndDate={setEndDate} value={endDate} />
     </>
   );
 };
