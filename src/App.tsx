@@ -505,17 +505,16 @@ function App() {
       let updatedState = { ...prevState };
       const newEntry = { id, source, amount };
 
+      setSubmissions(currentSubmissions => [...currentSubmissions, { id, source, amount, paymentDate, frequency, startDate, endDate, paymentFirstDate, paymentSecondDate, paymentMonth, payOn }]);
 
       if (frequency === "Daily" && startDate && endDate) {
-        const start = parseISO(startDate); // Parse the start date from ISO string
-        const end = parseISO(endDate);     // Parse the end date from ISO string
+        const start = parseISO(startDate);
+        const end = parseISO(endDate);
 
-        // Generate an array of dates from start to end
-        const datesInRange = eachDayOfInterval({ start, end });
+        const datesInRange = generateDateRange(start, end);
 
         datesInRange.forEach((date) => {
-          const formattedDate = format(date, 'yyyy-MM-dd'); // Format date to YYYY-MM-DD
-
+          const formattedDate = date.toISOString().split("T")[0];
           if (!updatedState[formattedDate]) {
             updatedState[formattedDate] = {
               cashIn: [],
@@ -524,7 +523,7 @@ function App() {
               cumulativeCashFlow: 0,
             };
           }
-          updatedState[formattedDate].cashOut.push(newEntry); // Assuming this is for cashOut
+          updatedState[formattedDate].cashOut.push(newEntry);
         });
       } else if (frequency === "One-time" && paymentDate) {
         if (!updatedState[paymentDate]) {
@@ -537,9 +536,9 @@ function App() {
         }
         updatedState[paymentDate].cashOut.push(newEntry);
       } else if (frequency === "Weekly" && payOn && startDate && endDate) {
-        const start = new Date(startDate);
+        const start = parseISO(startDate);
+        const end = parseISO(endDate);
 
-        const end = new Date(endDate);
 
         const dayIndex = [
           "Sunday",
@@ -568,86 +567,64 @@ function App() {
           }
           updatedState[formattedDate].cashOut.push(newEntry);
         });
-      } else if (
-        frequency === "Every 2 weeks" &&
-        payOn &&
-        startDate &&
-        endDate
-      ) {
-        const start = new Date(startDate);
-        const end = new Date(endDate);
-        const dayIndex = [
-          "Sunday",
-          "Monday",
-          "Tuesday",
-          "Wednesday",
-          "Thursday",
-          "Friday",
-          "Saturday",
-        ].indexOf(payOn);
-        let datesInRange = generateDateRange(start, end);
+      } else if (frequency === "Every 2 weeks" && payOn && startDate && endDate) {
+        const start = parseISO(startDate);
+        const end = parseISO(endDate);
+        const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        const dayIndex = days.indexOf(payOn);
+        let datesInRange = eachDayOfInterval({ start, end });
 
         // Find the first occurrence of `payOn` after the start date
-        const firstOccurrenceIndex = datesInRange.findIndex(
-          (date) => date.getDay() === dayIndex
-        );
+        const firstOccurrenceIndex = datesInRange.findIndex(date => getDay(date) === dayIndex);
         if (firstOccurrenceIndex !== -1) {
-          // Filter to keep only dates that are `payOn` and every 2 weeks from the first occurrence
-          datesInRange = datesInRange.filter(
-            (_, index) =>
-              index >= firstOccurrenceIndex &&
-              (index - firstOccurrenceIndex) % 14 === 0
-          );
-        }
+          // Calculate the initial occurrence date
+          let currentDay = datesInRange[firstOccurrenceIndex];
+          let biWeeklyDates = [];
 
-        datesInRange.forEach((date) => {
-          const formattedDate = date.toISOString().split("T")[0];
-
-          if (!updatedState[formattedDate]) {
-            updatedState[formattedDate] = {
-              cashIn: [],
-              cashOut: [],
-              netCashFlow: 0,
-              cumulativeCashFlow: 0,
-            };
+          // Collect all bi-weekly occurrences starting from the first found `payOn`
+          while (currentDay <= end) {
+            biWeeklyDates.push(currentDay);
+            currentDay = addDays(currentDay, 14);  // Add 14 days for the bi-weekly interval
           }
-          updatedState[formattedDate].cashOut.push(newEntry);
-        });
-      } else if (
-        frequency === "Every 4 weeks" &&
-        payOn &&
-        startDate &&
-        endDate
-      ) {
-        const start = new Date(startDate);
-        const end = new Date(endDate);
-        const dayIndex = [
-          "Sunday",
-          "Monday",
-          "Tuesday",
-          "Wednesday",
-          "Thursday",
-          "Friday",
-          "Saturday",
-        ].indexOf(payOn);
-        let datesInRange = generateDateRange(start, end);
 
-        // Find the first occurrence of `payOn` after the start date
-        const firstOccurrenceIndex = datesInRange.findIndex(
-          (date) => date.getDay() === dayIndex
-        );
-
-        if (firstOccurrenceIndex !== -1) {
-          // Include only dates that are `payOn` and every 4 weeks from the first occurrence
-          datesInRange = datesInRange.filter(
-            (_, index) =>
-              index >= firstOccurrenceIndex &&
-              (index - firstOccurrenceIndex) % 28 === 0
-          );
+          // Process each bi-weekly date
+          biWeeklyDates.forEach(date => {
+            const formattedDate = format(date, 'yyyy-MM-dd');
+            if (!updatedState[formattedDate]) {
+              updatedState[formattedDate] = {
+                cashIn: [],
+                cashOut: [],
+                netCashFlow: 0,
+                cumulativeCashFlow: 0,
+              };
+            }
+            updatedState[formattedDate].cashOut.push(newEntry);
+          });
         }
 
-        datesInRange.forEach((date) => {
-          const formattedDate = date.toISOString().split("T")[0];
+      } else if (frequency === "Every 4 weeks" && payOn && startDate && endDate) {
+        const start = parseISO(startDate);
+        const end = parseISO(endDate);
+        const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        const dayIndex = days.indexOf(payOn);
+
+        let datesInRange = generateDateRange(start, end);
+        let datesToProcess: Date[] = [];
+
+        // Find the first occurrence of `payOn` after the start date and calculate subsequent occurrences every 4 weeks
+        for (let i = 0; i < datesInRange.length; i++) {
+          if (getDay(datesInRange[i]) === dayIndex) {
+            let currentDate = datesInRange[i];
+            while (currentDate <= end) {
+              datesToProcess.push(currentDate);
+              currentDate = addWeeks(currentDate, 4);
+            }
+            break;
+          }
+        }
+
+        datesToProcess.forEach((date) => {
+          const formattedDate = formatISO(date, { representation: 'date' });
 
           if (!updatedState[formattedDate]) {
             updatedState[formattedDate] = {
@@ -660,9 +637,9 @@ function App() {
           updatedState[formattedDate].cashOut.push(newEntry);
         });
       } else if (frequency === "Monthly" && startDate && endDate) {
-        const start = new Date(startDate);
+        const start = parseISO(startDate);
 
-        const end = new Date(endDate);
+        const end = parseISO(endDate);
         let currentDate = start;
 
         while (currentDate <= end) {
@@ -683,8 +660,8 @@ function App() {
           );
         }
       } else if (frequency === "Every 2 months" && startDate && endDate) {
-        const start = new Date(startDate);
-        const end = new Date(endDate);
+        const start = parseISO(startDate);
+        const end = parseISO(endDate);
         let currentDate = start;
 
         while (currentDate <= end) {
@@ -705,8 +682,8 @@ function App() {
           );
         }
       } else if (frequency === "Quarterly" && startDate && endDate) {
-        const start = new Date(startDate);
-        const end = new Date(endDate);
+        const start = parseISO(startDate);
+        const end = parseISO(endDate);
         let currentDate = start;
 
         while (currentDate <= end) {
@@ -747,8 +724,8 @@ function App() {
           currentDate = nextQuarterDate;
         }
       } else if (frequency === "Twice per year" && startDate && endDate) {
-        const start = new Date(startDate);
-        const end = new Date(endDate);
+        const start = parseISO(startDate);
+        const end = parseISO(endDate);
         let currentDate = start;
 
         while (currentDate <= end) {
@@ -789,9 +766,9 @@ function App() {
           currentDate = nextSemiAnnualDate;
         }
       } else if (frequency === "Twice per month" && startDate && endDate) {
-        const startDateObj = new Date(startDate);
-        const endDateObj = new Date(endDate);
-        const currentDate = new Date(startDateObj);
+        const startDateObj = parseISO(startDate);
+        const endDateObj = parseISO(endDate);
+        const currentDate = startDateObj;
 
         const parseDayFromString = (
           dayString: string,
@@ -830,7 +807,7 @@ function App() {
                   cumulativeCashFlow: 0,
                 };
               }
-              updatedState[formattedDate].cashIn.push({ id, source, amount });
+              updatedState[formattedDate].cashOut.push(newEntry);
             }
           });
 
@@ -844,8 +821,8 @@ function App() {
         startDate &&
         endDate
       ) {
-        const startDateObj = new Date(startDate);
-        const endDateObj = new Date(endDate);
+        const startDateObj = parseISO(startDate);
+        const endDateObj = parseISO(endDate);
 
         const parseDayFromString = (
           dayString: string,
@@ -883,7 +860,6 @@ function App() {
           }
         }
       }
-
       // Add any additional frequency handling as needed
       return calculateAndUpdateNetCashFlow(updatedState);
     });
