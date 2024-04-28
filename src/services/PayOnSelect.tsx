@@ -7,13 +7,10 @@ interface PayOnSelectProps {
   setPayOn: (payOn: string) => void;
 }
 
-const PayOnSelect: React.FC<PayOnSelectProps> = ({
-  value,
-  setPayOn,
-}) => {
+const PayOnSelect: React.FC<PayOnSelectProps> = ({ value, setPayOn }) => {
   const handleChange = (
     event: React.SyntheticEvent | null,
-    newValue: string | null,
+    newValue: string | null
   ) => {
     // Update the component's pay on state
     if (newValue) {
@@ -22,12 +19,7 @@ const PayOnSelect: React.FC<PayOnSelectProps> = ({
   };
 
   return (
-    <Select
-      value={value}
-      onChange={handleChange}
-      color="primary"
-      size="sm"
-    >
+    <Select value={value} onChange={handleChange} color="primary" size="sm">
       <Option value="Sunday">Sunday</Option>
       <Option value="Monday">Monday</Option>
       <Option value="Tuesday">Tuesday</Option>

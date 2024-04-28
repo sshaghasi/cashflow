@@ -11,7 +11,10 @@ const PaymentMonth: React.FC<PaymentMonthProps> = ({
   setPaymentMonth,
   defaultValue,
 }) => {
-  const handleChange = (event: React.SyntheticEvent | null, newValue: string | null) => {
+  const handleChange = (
+    event: React.SyntheticEvent | null,
+    newValue: string | null
+  ) => {
     if (newValue) {
       setPaymentMonth(newValue);
     }
@@ -19,8 +22,18 @@ const PaymentMonth: React.FC<PaymentMonthProps> = ({
 
   // Define the list of months
   const months = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
   ];
 
   return (

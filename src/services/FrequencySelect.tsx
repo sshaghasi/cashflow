@@ -14,7 +14,7 @@ const FrequencySelect: React.FC<FrequencySelectProps> = ({
 }) => {
   const handleChange = (
     event: React.SyntheticEvent | null,
-    newValue: string | null,
+    newValue: string | null
   ) => {
     // Update the CashIn component's frequency state
     if (newValue) {

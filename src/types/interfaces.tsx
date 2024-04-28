@@ -3,7 +3,6 @@ export interface ForecastTimeFrameProps {
   timeFrameEnd: string;
   onTimeFrameStartChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onTimeFrameEndChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  
 }
 
 export interface OverviewTableProps {
@@ -40,12 +39,11 @@ export interface CashProps {
   dateRange: string[];
 }
 
-
 export interface CashEntry {
   id: string;
   source: string;
   amount: number;
-  type?: 'Cash-In' | 'Cash-Out';
+  type?: "Cash-In" | "Cash-Out";
 }
 
 export interface DisplayDataProps {
@@ -85,6 +83,6 @@ export interface SubmissionEntry {
   startDate: string;
   endDate: string;
   paymentDate: string;
-  type: 'Cash-In' | 'Cash-Out'; // Add this line to distinguish between Cash In and Cash Out
+  type: "Cash-In" | "Cash-Out"; // Add this line to distinguish between Cash In and Cash Out
   // Include other properties as needed
 }

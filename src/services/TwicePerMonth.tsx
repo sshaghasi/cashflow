@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import { FormLabel } from "@mui/joy";
 import FirstPaymentSelect from "./FirstPaymentSelect";
-import SecondPaymentSelect from './SecondPaymentSelect';
+import SecondPaymentSelect from "./SecondPaymentSelect";
 import StartDateSelect from "./StartDateSelect";
 import EndDateSelect from "./EndDateSelect";
 
-import { parseISO, getDate, getDaysInMonth } from 'date-fns';
+import { parse, getDate, getDaysInMonth } from "date-fns";
 
 interface TwicePerMonthProps {
   paymentFirstDate: string;
@@ -18,14 +18,14 @@ interface TwicePerMonthProps {
   setEndDate: (endDate: string) => void;
   dateRange: string[];
 }
-  
 
-
-const parseDayFromString = (dayString: string): number | 'Last Day' | undefined => {
-  if (dayString === 'Last Day') {
-    return 'Last Day';
+const parseDayFromString = (
+  dayString: string
+): number | "Last Day" | undefined => {
+  if (dayString === "Last Day") {
+    return "Last Day";
   }
-  const numericPart = dayString.replace(/\D/g, '');
+  const numericPart = dayString.replace(/\D/g, "");
   const day = parseInt(numericPart, 10);
   return isNaN(day) ? undefined : day;
 };
@@ -39,7 +39,7 @@ const TwicePerMonth: React.FC<TwicePerMonthProps> = ({
   setStartDate,
   endDate,
   setEndDate,
-  dateRange
+  dateRange,
 }) => {
   const [filteredDateRange, setFilteredDateRange] = useState<string[]>([]);
 
@@ -47,14 +47,14 @@ const TwicePerMonth: React.FC<TwicePerMonthProps> = ({
     const firstDay = parseDayFromString(paymentFirstDate);
     const secondDay = parseDayFromString(paymentSecondDate);
 
-    const newFilteredRange = dateRange.filter(dateStr => {
-      const date = parseISO(dateStr);
+    const newFilteredRange = dateRange.filter((dateStr) => {
+      const date = parse(dateStr, "MM-dd-yyyy", new Date());
       const dayOfMonth = getDate(date);
       const lastDayOfMonth = getDaysInMonth(date);
 
       return (
-        (firstDay === 'Last Day' && dayOfMonth === lastDayOfMonth) ||
-        (secondDay === 'Last Day' && dayOfMonth === lastDayOfMonth) ||
+        (firstDay === "Last Day" && dayOfMonth === lastDayOfMonth) ||
+        (secondDay === "Last Day" && dayOfMonth === lastDayOfMonth) ||
         (firstDay !== undefined && dayOfMonth === firstDay) ||
         (secondDay !== undefined && dayOfMonth === secondDay)
       );
@@ -66,9 +66,15 @@ const TwicePerMonth: React.FC<TwicePerMonthProps> = ({
   return (
     <>
       <FormLabel>First Payment Day</FormLabel>
-      <FirstPaymentSelect setPaymentFirstDate={setPaymentFirstDate} defaultValue={paymentFirstDate} />
+      <FirstPaymentSelect
+        setPaymentFirstDate={setPaymentFirstDate}
+        defaultValue={paymentFirstDate}
+      />
       <FormLabel>Second Payment Day</FormLabel>
-      <SecondPaymentSelect setPaymentSecondDate={setPaymentSecondDate} defaultValue={paymentSecondDate} />
+      <SecondPaymentSelect
+        setPaymentSecondDate={setPaymentSecondDate}
+        defaultValue={paymentSecondDate}
+      />
       <FormLabel>Start Date</FormLabel>
       <StartDateSelect
         dateRange={filteredDateRange}

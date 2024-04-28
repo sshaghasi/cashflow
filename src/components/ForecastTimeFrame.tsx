@@ -1,6 +1,6 @@
 import * as React from "react";
-import Input from '@mui/joy/Input';
-import Stack from '@mui/joy/Stack';
+import Input from "@mui/joy/Input";
+import Stack from "@mui/joy/Stack";
 import Typography from "@mui/joy/Typography";
 
 import { ForecastTimeFrameProps } from "../types/interfaces";
@@ -21,13 +21,9 @@ const ForecastTimeFrame: React.FC<ForecastTimeFrameProps> = ({
         value={timeFrameStart}
         onChange={onTimeFrameStartChange}
       />
-      <Input
-        type="date"
-        value={timeFrameEnd}
-        onChange={onTimeFrameEndChange}
-      />
+      <Input type="date" value={timeFrameEnd} onChange={onTimeFrameEndChange} />
     </Stack>
   );
-}
+};
 
 export default ForecastTimeFrame;

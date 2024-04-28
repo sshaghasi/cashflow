@@ -1,7 +1,6 @@
-import React from 'react';
-import Select from '@mui/joy/Select';
-import Option from '@mui/joy/Option';
-
+import React from "react";
+import Select from "@mui/joy/Select";
+import Option from "@mui/joy/Option";
 
 interface PaymentDateProps {
   dateRange: string[];
@@ -14,7 +13,10 @@ const PaymentDate: React.FC<PaymentDateProps> = ({
   setPaymentDate,
   defaultValue,
 }) => {
-  const handleChange = (event: React.SyntheticEvent | null, newValue: string | null) => {
+  const handleChange = (
+    event: React.SyntheticEvent | null,
+    newValue: string | null
+  ) => {
     // Update the parent component's startDate state
     if (newValue) {
       setPaymentDate(newValue);
@@ -28,7 +30,6 @@ const PaymentDate: React.FC<PaymentDateProps> = ({
       color="primary"
       size="sm"
     >
-      
       {dateRange.map((date) => (
         <Option key={date} value={date}>
           {date}

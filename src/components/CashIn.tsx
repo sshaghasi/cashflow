@@ -40,14 +40,14 @@ const CashIn: React.FC<CashProps> = ({
     setSource("");
     setAmount("");
     setPaymentDate("");
-    setFrequency("One-time")
-    setStartDate("")
-    setEndDate("")
-    setPayOn("")
-    setPaymentFirstDate("")
-    setPaymentSecondDate("")
-    setPaymentMonth("")
-    setResetKey(prevKey => prevKey + 1); // Increment key to force re-render
+    setFrequency("One-time");
+    setStartDate("");
+    setEndDate("");
+    setPayOn("");
+    setPaymentFirstDate("");
+    setPaymentSecondDate("");
+    setPaymentMonth("");
+    setResetKey((prevKey) => prevKey + 1); // Increment key to force re-render
   };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -91,7 +91,7 @@ const CashIn: React.FC<CashProps> = ({
     resetForm(); // Reset form fields after Cash Out submission
   };
 
-useEffect(() => {
+  useEffect(() => {
     // Dependency array now includes resetKey to react to its changes
     if (dateRange && dateRange.length > 0) {
       setPaymentDate(dateRange[0]);
@@ -99,7 +99,6 @@ useEffect(() => {
       setEndDate(dateRange[dateRange.length - 1]); // Fixed to access last element properly
     }
   }, [dateRange, resetKey]); // React to changes in dateRange and resetKey
-
 
   const renderConditionalInputs = () => {
     switch (frequency) {
@@ -230,7 +229,6 @@ useEffect(() => {
               setEndDate={setEndDate}
             />
           </>
-
         );
       case "Twice per month":
         return (
@@ -247,7 +245,6 @@ useEffect(() => {
               setEndDate={setEndDate}
             />
           </>
-
         );
       case "Twice per year":
         return (

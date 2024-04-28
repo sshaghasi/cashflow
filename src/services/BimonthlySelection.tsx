@@ -1,9 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import { FormLabel } from "@mui/joy";
 import FirstPaymentSelect from "./FirstPaymentSelect";
 import StartDateSelect from "./StartDateSelect";
 import EndDateSelect from "./EndDateSelect";
-import { format, parse, getMonth, getYear, getDate, lastDayOfMonth } from 'date-fns';
+import {
+  format,
+  parse,
+  getDate,
+  lastDayOfMonth,
+  differenceInCalendarMonths,
+} from "date-fns";
 
 interface BimonthlySelectionProps {
   paymentFirstDate: string;
@@ -27,39 +33,51 @@ const BimonthlySelection: React.FC<BimonthlySelectionProps> = ({
   const [filteredDateRange, setFilteredDateRange] = useState<string[]>([]);
 
   useEffect(() => {
-    const formatDateAsLocalYYYYMMDD = (date: Date): string => {
-      // Using date-fns to format the date
-      return format(date, 'MM-dd-yyyy');
-    };
+    const formatDateAsLocalYYYYMMDD = (date: Date): string =>
+      format(date, "MM-dd-yyyy");
+    const today = new Date();
+    const baseDate = startDate ? parse(startDate, "MM-dd-yyyy", today) : today;
 
-    // Parse the start date once and use it throughout
-    const baseDate = startDate ? parse(startDate, 'MM-dd-yyyy', new Date()) : new Date();
-    const baseMonth = getMonth(baseDate);
+    // If the selected day has already passed in the base month, adjust the base date to the next occurrence.
+    const dayOfMonthSelected = parseInt(paymentFirstDate, 10);
+    if (!isNaN(dayOfMonthSelected) && getDate(baseDate) > dayOfMonthSelected) {
+      baseDate.setMonth(baseDate.getMonth() + 1);
+      baseDate.setDate(dayOfMonthSelected);
+    }
 
-    const newFilteredRange = dateRange.map(dateString => {
-      const date = parse(dateString, 'MM-dd-yyyy', new Date());
-      const formattedDate = formatDateAsLocalYYYYMMDD(date);
-      return formattedDate;
-    }).filter(formattedDate => {
-      const date = parse(formattedDate, 'MM-dd-yyyy', new Date());
-      const monthDiff = (getYear(date) - getYear(baseDate)) * 12 + getMonth(date) - baseMonth;
-      const isEveryTwoMonths = monthDiff % 2 === 0;
+    const newFilteredRange = dateRange
+      .map((dateString) => {
+        const date = parse(dateString, "MM-dd-yyyy", new Date());
+        return formatDateAsLocalYYYYMMDD(date);
+      })
+      .filter((formattedDate) => {
+        const date = parse(formattedDate, "MM-dd-yyyy", new Date());
+        const monthDiff = differenceInCalendarMonths(date, baseDate);
+        const isEveryTwoMonths = monthDiff % 2 === 0 && monthDiff >= 0;
 
-      if (paymentFirstDate === "Last Day") {
-        return isEveryTwoMonths && getDate(date) === getDate(lastDayOfMonth(date));
-      }
-      const dayOfMonth = parseInt(paymentFirstDate, 10);
-      return !isNaN(dayOfMonth) && isEveryTwoMonths && getDate(date) === dayOfMonth;
-    });
+        if (paymentFirstDate === "Last Day") {
+          return (
+            isEveryTwoMonths && getDate(date) === getDate(lastDayOfMonth(date))
+          );
+        }
+        return (
+          !isNaN(dayOfMonthSelected) &&
+          isEveryTwoMonths &&
+          getDate(date) === dayOfMonthSelected
+        );
+      });
 
     setFilteredDateRange(newFilteredRange);
-    console.log(newFilteredRange);
+    console.log(newFilteredRange); // Optional: Keep this log to check the adjusted outputs
   }, [paymentFirstDate, dateRange, startDate]);
 
   return (
     <>
       <FormLabel>First Payment Date</FormLabel>
-      <FirstPaymentSelect defaultValue={paymentFirstDate} setPaymentFirstDate={setPaymentFirstDate} />
+      <FirstPaymentSelect
+        defaultValue={paymentFirstDate}
+        setPaymentFirstDate={setPaymentFirstDate}
+      />
       <FormLabel>Start Date</FormLabel>
       <StartDateSelect
         dateRange={filteredDateRange} // Pass the correctly formatted and filtered dates
@@ -75,10 +93,5 @@ const BimonthlySelection: React.FC<BimonthlySelectionProps> = ({
     </>
   );
 };
-
-
-
-
-
 
 export default BimonthlySelection;

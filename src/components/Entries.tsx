@@ -1,9 +1,8 @@
 import React from "react";
 import Table from "@mui/joy/Table";
 import Sheet from "@mui/joy/Sheet";
-import IconButton from '@mui/joy/IconButton';
-import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
-
+import IconButton from "@mui/joy/IconButton";
+import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 
 interface Submission {
   id: string;
@@ -13,7 +12,7 @@ interface Submission {
   startDate: string;
   endDate: string;
   paymentDate: string;
-  type: 'Cash-In' | 'Cash-Out'; // Add this line to distinguish between Cash In and Cash Out
+  type: "Cash-In" | "Cash-Out"; // Add this line to distinguish between Cash In and Cash Out
 }
 
 interface EntriesProps {
@@ -46,13 +45,22 @@ const Entries: React.FC<EntriesProps> = ({
               <td>{submission.type}</td>
               <td>${submission.amount.toFixed(2)}</td>
               <td>{submission.frequency}</td>
-              <td>{submission.frequency === 'One-time' ? submission.paymentDate : submission.startDate}</td>
-              <td>{submission.frequency === 'One-time' ? submission.paymentDate : submission.endDate}</td>
+              <td>
+                {submission.frequency === "One-time"
+                  ? submission.paymentDate
+                  : submission.startDate}
+              </td>
+              <td>
+                {submission.frequency === "One-time"
+                  ? submission.paymentDate
+                  : submission.endDate}
+              </td>
               <td>
                 <IconButton
                   color="danger"
-                  onClick={() => handleUndoSubmission(submission.id)}>
-                  <DeleteForeverIcon/>
+                  onClick={() => handleUndoSubmission(submission.id)}
+                >
+                  <DeleteForeverIcon />
                 </IconButton>
               </td>
             </tr>
