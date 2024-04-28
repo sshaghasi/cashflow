@@ -29,19 +29,19 @@ const BimonthlySelection: React.FC<BimonthlySelectionProps> = ({
   useEffect(() => {
     const formatDateAsLocalYYYYMMDD = (date: Date): string => {
       // Using date-fns to format the date
-      return format(date, 'yyyy-MM-dd');
+      return format(date, 'MM-dd-yyyy');
     };
 
     // Parse the start date once and use it throughout
-    const baseDate = startDate ? parse(startDate, 'yyyy-MM-dd', new Date()) : new Date();
+    const baseDate = startDate ? parse(startDate, 'MM-dd-yyyy', new Date()) : new Date();
     const baseMonth = getMonth(baseDate);
 
     const newFilteredRange = dateRange.map(dateString => {
-      const date = parse(dateString, 'yyyy-MM-dd', new Date());
+      const date = parse(dateString, 'MM-dd-yyyy', new Date());
       const formattedDate = formatDateAsLocalYYYYMMDD(date);
       return formattedDate;
     }).filter(formattedDate => {
-      const date = parse(formattedDate, 'yyyy-MM-dd', new Date());
+      const date = parse(formattedDate, 'MM-dd-yyyy', new Date());
       const monthDiff = (getYear(date) - getYear(baseDate)) * 12 + getMonth(date) - baseMonth;
       const isEveryTwoMonths = monthDiff % 2 === 0;
 

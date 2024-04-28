@@ -29,22 +29,22 @@ const TwiceYearSelection: React.FC<TwiceYearSelectionProps> = ({
 
 useEffect(() => {
   const formatDateAsLocalYYYYMMDD = (date: Date) => {
-    // Using date-fns to format the date as YYYY-MM-DD
-    return format(date, 'yyyy-MM-dd');
+    // Using date-fns to format the date as MM-dd-yyyy
+    return format(date, 'MM-dd-yyyy');
   };
 
-  // Parsing the startDate and assuming it is in 'yyyy-MM-dd' format, adjust if necessary
-  const baseDate = parse(startDate, 'yyyy-MM-dd', new Date());
+  // Parsing the startDate and assuming it is in 'MM-dd-yyyy' format, adjust if necessary
+  const baseDate = parse(startDate, 'MM-dd-yyyy', new Date());
   const baseMonth = getMonth(baseDate); // getMonth is zero-indexed
 
   const newFilteredRange = dateRange.map(dateString => {
-    // Parsing each date in the date range assuming they are in 'yyyy-MM-dd' format
-    const date = parse(dateString, 'yyyy-MM-dd', new Date());
+    // Parsing each date in the date range assuming they are in 'MM-dd-yyyy' format
+    const date = parse(dateString, 'MM-dd-yyyy', new Date());
     const formattedDate = formatDateAsLocalYYYYMMDD(date);
     return formattedDate;
   }).filter(formattedDate => {
     // Re-parsing to convert string back to date
-    const date = parse(formattedDate, 'yyyy-MM-dd', new Date());
+    const date = parse(formattedDate, 'MM-dd-yyyy', new Date());
     // Calculate the month difference from the base month for semi-annual adjustment
     const monthDiff = (getYear(date) - getYear(baseDate)) * 12 + getMonth(date) - baseMonth;
     // Check if the month difference is a multiple of 6

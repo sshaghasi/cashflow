@@ -38,8 +38,8 @@ useEffect(() => {
   const targetDay = paymentFirstDate === "Last Day" ? -1 : parseInt(paymentFirstDate, 10);
 
   const newFilteredRange = dateRange.filter(dateStr => {
-    // Parse the date string assuming it's in 'yyyy-MM-dd' format, adjust format if necessary
-    const date = parse(dateStr, 'yyyy-MM-dd', new Date());
+    // Parse the date string assuming it's in 'MM-dd-yyyy' format, adjust format if necessary
+    const date = parse(dateStr, 'MM-dd-yyyy', new Date());
     const dayOfMonth = getDate(date);
     const lastDayOfMonthValue = lastDayOfMonth(date).getDate();
 

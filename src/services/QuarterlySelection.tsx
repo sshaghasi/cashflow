@@ -28,21 +28,21 @@ const QuarterlySelection: React.FC<QuarterlySelectionProps> = ({
 
 useEffect(() => {
   const formatDateAsLocalYYYYMMDD = (date: Date) => {
-    // Using date-fns to format the date as YYYY-MM-DD
-    return format(date, 'yyyy-MM-dd');
+    // Using date-fns to format the date as MM-dd-yyyy
+    return format(date, 'MM-dd-yyyy');
   };
 
-  const baseDate = parse(startDate, 'yyyy-MM-dd', new Date());
+  const baseDate = parse(startDate, 'MM-dd-yyyy', new Date());
   const baseMonth = getMonth(baseDate); // Get the month of the base date (0-indexed)
 
   const newFilteredRange = dateRange.map(dateString => {
-    const date = parse(dateString, 'yyyy-MM-dd', new Date());
+    const date = parse(dateString, 'MM-dd-yyyy', new Date());
     console.log("Original Date: ", date);
     const formattedDate = formatDateAsLocalYYYYMMDD(date);
     console.log("Formatted Date: ", formattedDate);
     return formattedDate;
   }).filter(formattedDate => {
-    const date = parse(formattedDate, 'yyyy-MM-dd', new Date());
+    const date = parse(formattedDate, 'MM-dd-yyyy', new Date());
     const monthDiff = (getYear(date) - getYear(baseDate)) * 12 + getMonth(date) - baseMonth;
     // Check if the month difference is a multiple of 3 for quarterly
     const isQuarterly = monthDiff % 3 === 0;

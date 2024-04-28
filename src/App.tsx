@@ -26,6 +26,7 @@ import {
 import {
   eachDayOfInterval,
   parseISO,
+  parse,
   format,
   addDays,
   addWeeks,
@@ -74,7 +75,7 @@ function App() {
 
       const newDateStates: DateStates = {};
       dates.forEach((date) => {
-        const formattedDate = format(date, "yyyy-MM-dd"); // Formatting to string for keys
+        const formattedDate = format(date, "MM-dd-yyyy"); // Formatting to string for keys
         newDateStates[formattedDate] = {
           cashIn: [],
           cashOut: [],
@@ -157,21 +158,25 @@ function App() {
       ]);
 
       if (frequency === "Daily" && startDate && endDate) {
-        const start = parseISO(startDate);
-        const end = parseISO(endDate);
+        const start = parse(startDate, 'MM-dd-yyyy', new Date());
+        const end = parse(endDate, 'MM-dd-yyyy', new Date());
 
-        const datesInRange = generateDateRange(start, end);
+        // Generate an array of dates from start to end (inclusive)
+        const datesInRange = eachDayOfInterval({ start, end });
 
+        // Process each date in the generated range
         datesInRange.forEach((date) => {
-          const formattedDate = date.toISOString().split("T")[0];
-          if (!updatedState[formattedDate]) {
-            updatedState[formattedDate] = {
-              cashIn: [],
-              cashOut: [],
-              netCashFlow: 0,
-              cumulativeCashFlow: 0,
-            };
-          }
+          const formattedDate = format(date, 'MM-dd-yyyy'); // Format each date once
+
+          // Initialize state for the date if it doesn't already exist
+          updatedState[formattedDate] = updatedState[formattedDate] || {
+            cashIn: [],
+            cashOut: [],
+            netCashFlow: 0,
+            cumulativeCashFlow: 0,
+          };
+
+          // Add the newEntry to the cashIn array for the formattedDate
           updatedState[formattedDate].cashIn.push(newEntry);
         });
       } else if (frequency === "One-time" && paymentDate) {
@@ -185,52 +190,38 @@ function App() {
         }
         updatedState[paymentDate].cashIn.push(newEntry);
       } else if (frequency === "Weekly" && payOn && startDate && endDate) {
-        const start = parseISO(startDate);
-        const end = parseISO(endDate);
+        const start = parse(startDate, 'MM-dd-yyyy', new Date());
+        const end = parse(endDate, 'MM-dd-yyyy', new Date());
 
         const dayIndex = [
-          "Sunday",
-          "Monday",
-          "Tuesday",
-          "Wednesday",
-          "Thursday",
-          "Friday",
-          "Saturday",
+          "Sunday", "Monday", "Tuesday", "Wednesday",
+          "Thursday", "Friday", "Saturday"
         ].indexOf(payOn);
 
-        const datesInRange = generateDateRange(start, end).filter(
-          (date) => date.getDay() === dayIndex
-        );
+        // Generate all dates in the range and then filter by the specified day of the week
+        const datesInRange = eachDayOfInterval({ start, end })
+          .filter(date => date.getDay() === dayIndex);
 
         datesInRange.forEach((date) => {
-          const formattedDate = date.toISOString().split("T")[0];
+          const formattedDate = format(date, 'MM-dd-yyyy'); // Formatting to the new required format
 
-          if (!updatedState[formattedDate]) {
-            updatedState[formattedDate] = {
-              cashIn: [],
-              cashOut: [],
-              netCashFlow: 0,
-              cumulativeCashFlow: 0,
-            };
-          }
+          // Initialize or use existing state for the date
+          updatedState[formattedDate] = updatedState[formattedDate] || {
+            cashIn: [],
+            cashOut: [],
+            netCashFlow: 0,
+            cumulativeCashFlow: 0,
+          };
+
+          // Add the newEntry to the cashIn array for the formattedDate
           updatedState[formattedDate].cashIn.push(newEntry);
         });
-      } else if (
-        frequency === "Every 2 weeks" &&
-        payOn &&
-        startDate &&
-        endDate
-      ) {
-        const start = parseISO(startDate);
-        const end = parseISO(endDate);
+      } else if (frequency === "Every 2 weeks" && payOn && startDate && endDate) {
+        const start = parse(startDate, 'MM-dd-yyyy', new Date());
+        const end = parse(endDate, 'MM-dd-yyyy', new Date());
         const days = [
-          "Sunday",
-          "Monday",
-          "Tuesday",
-          "Wednesday",
-          "Thursday",
-          "Friday",
-          "Saturday",
+          "Sunday", "Monday", "Tuesday", "Wednesday",
+          "Thursday", "Friday", "Saturday",
         ];
         const dayIndex = days.indexOf(payOn);
         let datesInRange = eachDayOfInterval({ start, end });
@@ -252,7 +243,7 @@ function App() {
 
           // Process each bi-weekly date
           biWeeklyDates.forEach((date) => {
-            const formattedDate = format(date, "yyyy-MM-dd");
+            const formattedDate = format(date, 'MM-dd-yyyy');
             if (!updatedState[formattedDate]) {
               updatedState[formattedDate] = {
                 cashIn: [],
@@ -264,27 +255,14 @@ function App() {
             updatedState[formattedDate].cashIn.push(newEntry);
           });
         }
-      } else if (
-        frequency === "Every 4 weeks" &&
-        payOn &&
-        startDate &&
-        endDate
-      ) {
-        const start = parseISO(startDate);
-        const end = parseISO(endDate);
-        const days = [
-          "Sunday",
-          "Monday",
-          "Tuesday",
-          "Wednesday",
-          "Thursday",
-          "Friday",
-          "Saturday",
-        ];
+      } else if (frequency === "Every 4 weeks" && payOn && startDate && endDate) {
+        const start = parse(startDate, 'MM-dd-yyyy', new Date());
+        const end = parse(endDate, 'MM-dd-yyyy', new Date());
+        const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
         const dayIndex = days.indexOf(payOn);
 
-        let datesInRange = generateDateRange(start, end);
-        let datesToProcess: Date[] = [];
+        let datesInRange = eachDayOfInterval({ start, end });
+        let datesToProcess = [];
 
         // Find the first occurrence of `payOn` after the start date and calculate subsequent occurrences every 4 weeks
         for (let i = 0; i < datesInRange.length; i++) {
@@ -292,153 +270,94 @@ function App() {
             let currentDate = datesInRange[i];
             while (currentDate <= end) {
               datesToProcess.push(currentDate);
-              currentDate = addWeeks(currentDate, 4);
+              currentDate = addWeeks(currentDate, 4); // Add 4 weeks to the current date
             }
-            break;
+            break; // Break after setting up the initial and subsequent dates
           }
         }
 
+        // Process each bi-weekly date
         datesToProcess.forEach((date) => {
-          const formattedDate = formatISO(date, { representation: "date" });
+          const formattedDate = format(date, 'MM-dd-yyyy'); // Use the correct format
 
-          if (!updatedState[formattedDate]) {
-            updatedState[formattedDate] = {
-              cashIn: [],
-              cashOut: [],
-              netCashFlow: 0,
-              cumulativeCashFlow: 0,
-            };
-          }
+          // Initialize or use existing state for the date
+          updatedState[formattedDate] = updatedState[formattedDate] || {
+            cashIn: [],
+            cashOut: [],
+            netCashFlow: 0,
+            cumulativeCashFlow: 0,
+          };
+
+          // Add the newEntry to the cashIn array for the formattedDate
           updatedState[formattedDate].cashIn.push(newEntry);
         });
       } else if (frequency === "Monthly" && startDate && endDate) {
-        const start = parseISO(startDate);
-
-        const end = parseISO(endDate);
+        const start = parse(startDate, 'MM-dd-yyyy', new Date());
+        const end = parse(endDate, 'MM-dd-yyyy', new Date());
         let currentDate = start;
-
+      
         while (currentDate <= end) {
-          const formattedDate = currentDate.toISOString().split("T")[0];
-          if (!updatedState[formattedDate]) {
-            updatedState[formattedDate] = {
-              cashIn: [],
-              cashOut: [],
-              netCashFlow: 0,
-              cumulativeCashFlow: 0,
-            };
-          }
+          const formattedDate = format(currentDate, 'MM-dd-yyyy');
+          updatedState[formattedDate] = updatedState[formattedDate] || {
+            cashIn: [],
+            cashOut: [],
+            netCashFlow: 0,
+            cumulativeCashFlow: 0,
+          };
           updatedState[formattedDate].cashIn.push(newEntry);
 
           // Move to the same day next month
-          currentDate = new Date(
-            currentDate.setMonth(currentDate.getMonth() + 1)
-          );
+          currentDate = addMonths(currentDate, 1);
         }
       } else if (frequency === "Every 2 months" && startDate && endDate) {
-        const start = parseISO(startDate);
-        const end = parseISO(endDate);
+        const start = parse(startDate, 'MM-dd-yyyy', new Date());
+        const end = parse(endDate, 'MM-dd-yyyy', new Date());
         let currentDate = start;
-
+      
         while (currentDate <= end) {
-          const formattedDate = currentDate.toISOString().split("T")[0];
-          if (!updatedState[formattedDate]) {
-            updatedState[formattedDate] = {
-              cashIn: [],
-              cashOut: [],
-              netCashFlow: 0,
-              cumulativeCashFlow: 0,
-            };
-          }
+          const formattedDate = format(currentDate, 'MM-dd-yyyy');
+          updatedState[formattedDate] = updatedState[formattedDate] || {
+            cashIn: [],
+            cashOut: [],
+            netCashFlow: 0,
+            cumulativeCashFlow: 0,
+          };
           updatedState[formattedDate].cashIn.push(newEntry);
-
           // Move to the same day next month
-          currentDate = new Date(
-            currentDate.setMonth(currentDate.getMonth() + 2)
-          );
+          currentDate = addMonths(currentDate, 2); // Move to two months later
         }
       } else if (frequency === "Quarterly" && startDate && endDate) {
-        const start = parseISO(startDate);
-        const end = parseISO(endDate);
+        const start = parse(startDate, 'MM-dd-yyyy', new Date());
+        const end = parse(endDate, 'MM-dd-yyyy', new Date());
         let currentDate = start;
-
+      
         while (currentDate <= end) {
-          const formattedDate = currentDate.toISOString().split("T")[0];
-          if (!updatedState[formattedDate]) {
-            updatedState[formattedDate] = {
-              cashIn: [],
-              cashOut: [],
-              netCashFlow: 0,
-              cumulativeCashFlow: 0,
-            };
-          }
+          const formattedDate = format(currentDate, 'MM-dd-yyyy');
+          updatedState[formattedDate] = updatedState[formattedDate] || {
+            cashIn: [],
+            cashOut: [],
+            netCashFlow: 0,
+            cumulativeCashFlow: 0,
+          };
           updatedState[formattedDate].cashIn.push(newEntry);
-
-          // Calculate next quarter's date without updating currentDate yet
-          let nextQuarterDate = new Date(currentDate);
-          nextQuarterDate.setMonth(currentDate.getMonth() + 3);
-
-          // Check if the next quarter date is after the end date
-          if (nextQuarterDate > end) {
-            // If adding one quarter exceeds the end date, check if we need to add the end date itself
-            if (formattedDate !== end.toISOString().split("T")[0]) {
-              // Only add the end date if it's not the same as the already added date
-              const endDateFormatted = end.toISOString().split("T")[0];
-              if (!updatedState[endDateFormatted]) {
-                updatedState[endDateFormatted] = {
-                  cashIn: [],
-                  cashOut: [],
-                  netCashFlow: 0,
-                  cumulativeCashFlow: 0,
-                };
-              }
-              updatedState[endDateFormatted].cashIn.push(newEntry);
-            }
-            break; // Exit the loop since we've reached or passed the end date
-          }
-          // Now, update currentDate to the next quarter since we're continuing the loop
-          currentDate = nextQuarterDate;
+          currentDate = addMonths(currentDate, 3); // Move to the next quarter
         }
       } else if (frequency === "Twice per year" && startDate && endDate) {
-        const start = parseISO(startDate);
-        const end = parseISO(endDate);
+        const start = parse(startDate, 'MM-dd-yyyy', new Date());
+        const end = parse(endDate, 'MM-dd-yyyy', new Date());
         let currentDate = start;
-
+      
         while (currentDate <= end) {
-          const formattedDate = currentDate.toISOString().split("T")[0];
-          if (!updatedState[formattedDate]) {
-            updatedState[formattedDate] = {
-              cashIn: [],
-              cashOut: [],
-              netCashFlow: 0,
-              cumulativeCashFlow: 0,
-            };
-          }
+          const formattedDate = format(currentDate, 'MM-dd-yyyy');
+          updatedState[formattedDate] = updatedState[formattedDate] || {
+            cashIn: [],
+            cashOut: [],
+            netCashFlow: 0,
+            cumulativeCashFlow: 0,
+          };
           updatedState[formattedDate].cashIn.push(newEntry);
-
-          // Calculate the next semi-annual date without updating currentDate yet
-          let nextSemiAnnualDate = new Date(currentDate);
-          nextSemiAnnualDate.setMonth(currentDate.getMonth() + 6);
-
-          // Check if the next semi-annual date is after the end date
-          if (nextSemiAnnualDate > end) {
-            // If adding six months exceeds the end date, check if we need to add the end date itself
-            if (formattedDate !== end.toISOString().split("T")[0]) {
-              // Only add the end date if it's not the same as the already added date
-              const endDateFormatted = end.toISOString().split("T")[0];
-              if (!updatedState[endDateFormatted]) {
-                updatedState[endDateFormatted] = {
-                  cashIn: [],
-                  cashOut: [],
-                  netCashFlow: 0,
-                  cumulativeCashFlow: 0,
-                };
-              }
-              updatedState[endDateFormatted].cashIn.push(newEntry);
-            }
-            break; // Exit the loop since we've reached or passed the end date
-          }
           // Now, update currentDate to the next semi-annual date since we're continuing the loop
-          currentDate = nextSemiAnnualDate;
+          currentDate = addMonths(currentDate, 6); // Move to the next half-year point
         }
       } else if (frequency === "Twice per month" && startDate && endDate) {
         const startDateObj = parseISO(startDate);
@@ -1086,22 +1005,22 @@ function App() {
           <Grid container direction="column">
             <Grid>
               <Item>
-              <Button
-              color="primary"
-              disabled={false}
-              loading={false}
-              size="sm"
-              variant="solid"
-            >
-              <PDFDownloadLink
-                document={<PdfDocument dateStates={dateStates} />}
-                fileName="detailed-report.pdf"
-                style={{color:'white'}}>
-                {({ blob, url, loading, error }) =>
-                  loading ? "Loading document..." : "Download PDF"
-                }
-              </PDFDownloadLink>
-            </Button>
+                <Button
+                  color="primary"
+                  disabled={false}
+                  loading={false}
+                  size="sm"
+                  variant="solid"
+                >
+                  <PDFDownloadLink
+                    document={<PdfDocument dateStates={dateStates} />}
+                    fileName="detailed-report.pdf"
+                    style={{ color: 'white' }}>
+                    {({ blob, url, loading, error }) =>
+                      loading ? "Loading document..." : "Download PDF"
+                    }
+                  </PDFDownloadLink>
+                </Button>
                 <MyDivider />
               </Item>
             </Grid>

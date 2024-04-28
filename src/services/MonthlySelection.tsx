@@ -28,18 +28,18 @@ const MonthlySelection: React.FC<MonthlySelectionProps> = ({
 
   useEffect(() => {
     const formatDateAsLocalYYYYMMDD = (date: Date) => {
-      // format the date in YYYY-MM-DD format using date-fns
-      return format(date, 'yyyy-MM-dd');
+      // format the date in MM-dd-yyyy format using date-fns
+      return format(date, 'MM-dd-yyyy');
     };
 
     const newFilteredRange = dateRange.map(dateString => {
-      // Parse the date string assuming it is in YYYY-MM-DD format
-      const date = parse(dateString, 'yyyy-MM-dd', new Date());
+      // Parse the date string assuming it is in MM-dd-yyyy format
+      const date = parse(dateString, 'MM-dd-yyyy', new Date());
       const formattedDate = formatDateAsLocalYYYYMMDD(date);
       return formattedDate;
     }).filter(formattedDate => {
       // Re-parse the formatted date string
-      const date = parse(formattedDate, 'yyyy-MM-dd', new Date());
+      const date = parse(formattedDate, 'MM-dd-yyyy', new Date());
       if (paymentFirstDate === "Last Day") {
         // Check if the date is the last day of the month
         return getDate(date) === getDate(lastDayOfMonth(date));
