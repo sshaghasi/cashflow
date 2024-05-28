@@ -80,12 +80,14 @@ const TwicePerMonth: React.FC<TwicePerMonthProps> = ({
         dateRange={filteredDateRange}
         setStartDate={setStartDate}
         value={startDate}
+        endDate={endDate}
       />
       <FormLabel>End Date</FormLabel>
       <EndDateSelect
         dateRange={filteredDateRange}
         setEndDate={setEndDate}
         value={endDate}
+        startDate={startDate}
       />
     </>
   );

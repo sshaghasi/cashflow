@@ -97,8 +97,16 @@ const CashIn: React.FC<CashProps> = ({
       setPaymentDate(dateRange[0]);
       setStartDate(dateRange[0]);
       setEndDate(dateRange[dateRange.length - 1]); // Fixed to access last element properly
+      setPayOn("");
+      setPaymentFirstDate("");
+      setPaymentSecondDate("");
+      setPaymentMonth("");
     }
   }, [dateRange, resetKey]); // React to changes in dateRange and resetKey
+
+  useEffect(() => {
+    setResetKey((prevKey) => prevKey + 1);
+  }, [frequency]);
 
   const renderConditionalInputs = () => {
     switch (frequency) {
@@ -121,12 +129,14 @@ const CashIn: React.FC<CashProps> = ({
               dateRange={dateRange} // This prop is passed down from App
               setStartDate={setStartDate}
               value={startDate} // Ensure this is managed if you want a default value
+              endDate={endDate}
             />
             <FormLabel>End Date</FormLabel>
             <EndDateSelect
               dateRange={dateRange}
               setEndDate={setEndDate}
               value={endDate}
+              startDate={startDate}
             />
           </>
         );
@@ -141,6 +151,7 @@ const CashIn: React.FC<CashProps> = ({
               setStartDate={setStartDate}
               endDate={endDate}
               setEndDate={setEndDate}
+              weekAmount={1}
             />
           </>
         );
@@ -155,6 +166,7 @@ const CashIn: React.FC<CashProps> = ({
               setStartDate={setStartDate}
               endDate={endDate}
               setEndDate={setEndDate}
+              weekAmount={2}
             />
           </>
         );
@@ -169,6 +181,7 @@ const CashIn: React.FC<CashProps> = ({
               setStartDate={setStartDate}
               endDate={endDate}
               setEndDate={setEndDate}
+              weekAmount={4}
             />
           </>
         );
@@ -267,7 +280,7 @@ const CashIn: React.FC<CashProps> = ({
 
   return (
     <form onSubmit={handleSubmit} key={resetKey}>
-      <Stack spacing={0.5} direction="column">
+      <Stack spacing={0.5} sx={{ minWidth: 200 }} direction="column">
         <Typography level="h1">Cash In & Out</Typography>
         <FormLabel>Source</FormLabel>
         <Input

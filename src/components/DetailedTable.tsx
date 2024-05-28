@@ -38,7 +38,7 @@ const DetailedTable: React.FC<DetailedTableProps> = ({ dateStates }) => {
             return (
               <>
                 {transactions.map((transaction, index) => (
-                  <tr key={`${transaction.type}-${date}-${index}`}>
+                  <tr key={`${transaction.type}-${date}-${index}`} style={{ backgroundColor: dateIndex % 2 === 0 ? '#EEE' : '#FFF' }}>
                     <td>{index === 0 ? date : ""}</td>
                     <td>{transaction.type}</td>
                     <td>{transaction.source}</td>
@@ -53,16 +53,16 @@ const DetailedTable: React.FC<DetailedTableProps> = ({ dateStates }) => {
                         : ""}
                     </td>
                     {/* Empty cells for Net Cash Flow and Cumulative Cash Flow, to be filled in the summary row */}
-                    {index === 0 ? (
-                      <>
-                        <td></td>
-                        <td></td>
-                      </>
-                    ) : null}
+                    {/* {index === 0 ? (
+                      <> */}
+                    <td></td>
+                    <td></td>
+                      {/* </>
+                    ) : null} */}
                   </tr>
                 ))}
                 {/* Separate summary row for net and cumulative cash flow */}
-                <tr key={`summary-${date}`}>
+                <tr key={`summary-${date}`} style={{ backgroundColor: dateIndex % 2 === 0 ? '#EEE' : '#FFF' }}>
                   <td colSpan={5}></td> {/* Adjust colSpan as needed */}
                   <td>{entry.netCashFlow?.toFixed(2)}</td>
                   <td>{entry.cumulativeCashFlow?.toFixed(2)}</td>
