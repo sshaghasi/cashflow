@@ -72,6 +72,7 @@ interface TableRow {
   date: string;
   transaction: Transaction | SummaryTransaction; // Transaction or a specific type for the summary
   isFirst: boolean;
+  colorFlag: boolean;
 }
 
 interface SummaryTransaction {
@@ -85,9 +86,11 @@ const PdfDocument: React.FC<PdfDocumentProps> = ({ dateStates }) => {
   const pages: TableRow[][] = [];
   let currentRows: TableRow[] = [];
   let count = 1; // Start count at 1 to account for the header row
+  let colorFlag = false;
 
   Object.entries(dateStates).forEach(([date, entry]) => {
     // Skip dates with no entries
+    colorFlag = !colorFlag;
     if (entry.cashIn.length === 0 && entry.cashOut.length === 0) return;
 
     const transactions = [
@@ -107,7 +110,7 @@ const PdfDocument: React.FC<PdfDocumentProps> = ({ dateStates }) => {
         count = 1;
       }
 
-      currentRows.push({ date, transaction, isFirst: index === 0 });
+      currentRows.push({ date, transaction, isFirst: index === 0, colorFlag });
       count++;
     });
 
@@ -122,7 +125,7 @@ const PdfDocument: React.FC<PdfDocumentProps> = ({ dateStates }) => {
       amount: entry.netCashFlow,
       cumulative: entry.cumulativeCashFlow,
     };
-    currentRows.push({ date, transaction: summary, isFirst: false });
+    currentRows.push({ date, transaction: summary, isFirst: false, colorFlag });
     count++;
   });
 
@@ -158,10 +161,10 @@ const PdfDocument: React.FC<PdfDocumentProps> = ({ dateStates }) => {
                   Cum. Cash Flow
                 </Text>
               </View>
-              {pageRows.map(({ date, transaction, isFirst }, index) => (
+              {pageRows.map(({ date, transaction, isFirst, colorFlag }, index) => (
                 <View
                   key={`${transaction.type}-${date}-${index}`}
-                  style={styles.tableRow}
+                  style={[styles.tableRow, {backgroundColor: colorFlag ? '#EEE' : '#FFF'}]}
                 >
                   <Text style={styles.tableCell}>{isFirst ? date : ""}</Text>
                   <Text style={styles.tableCell}>

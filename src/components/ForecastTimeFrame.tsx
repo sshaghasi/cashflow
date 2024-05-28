@@ -12,7 +12,7 @@ const ForecastTimeFrame: React.FC<ForecastTimeFrameProps> = ({
   onTimeFrameEndChange,
 }: ForecastTimeFrameProps) => {
   return (
-    <Stack spacing={1.5} sx={{ minWidth: 300 }}>
+    <Stack spacing={1.5} sx={{ minWidth: 200 }}>
       <Typography level="h1" sx={{ paddingBottom: 2 }}>
         Time Frame
       </Typography>

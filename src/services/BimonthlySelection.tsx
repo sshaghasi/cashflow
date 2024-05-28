@@ -83,12 +83,14 @@ const BimonthlySelection: React.FC<BimonthlySelectionProps> = ({
         dateRange={filteredDateRange} // Pass the correctly formatted and filtered dates
         setStartDate={setStartDate}
         value={startDate}
+        endDate={endDate}
       />
       <FormLabel>End Date</FormLabel>
       <EndDateSelect
         dateRange={filteredDateRange} // Similarly for End Date
         setEndDate={setEndDate}
         value={endDate}
+        startDate={startDate}
       />
     </>
   );

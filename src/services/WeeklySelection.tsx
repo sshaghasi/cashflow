@@ -1,5 +1,5 @@
 // WeeklySelection.tsx
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { FormLabel } from "@mui/joy"; // Adjust import paths as necessary
 import PayOnSelect from "../services/PayOnSelect";
 import StartDateSelect from "../services/StartDateSelect";
@@ -14,9 +14,10 @@ interface WeeklySelectionProps {
   setStartDate: (startDate: string) => void;
   endDate: string;
   setEndDate: (endDate: string) => void;
+  weekAmount: number;
 }
 
-// Utility function to filter dates by day of the week
+// Utility function to filter dates by weekday and week amount
 const filterDatesByDay = (dates: string[], dayOfWeek: string): string[] => {
   const days = [
     "Sunday",
@@ -46,9 +47,21 @@ const WeeklySelection: React.FC<WeeklySelectionProps> = ({
   setStartDate,
   endDate,
   setEndDate,
+  weekAmount
 }) => {
   // Filter dateRange based on the selected payOn day
-  const filteredDateRange = filterDatesByDay(dateRange, payOn);
+  const [filteredDateRange, setFilteredDateRange] = useState<string[]>([]);
+
+  useEffect(() => {
+    setFilteredDateRange(filterDatesByDay(dateRange, payOn));
+  }, [dateRange, payOn]);
+
+  useEffect(() => {
+    const startDateIndex = filteredDateRange.indexOf(startDate);
+    if (startDateIndex >= 0) {
+      setFilteredDateRange(filteredDateRange.filter((date: string, id: number) => id % weekAmount === startDateIndex % weekAmount));
+    }
+  }, [startDate]);
 
   return (
     <>
@@ -59,12 +72,14 @@ const WeeklySelection: React.FC<WeeklySelectionProps> = ({
         dateRange={filteredDateRange} // Pass the filtered dates
         setStartDate={setStartDate}
         value={startDate}
+        endDate={endDate}
       />
       <FormLabel>End Date</FormLabel>
       <EndDateSelect
         dateRange={filteredDateRange} // Pass the filtered dates
         setEndDate={setEndDate}
         value={endDate}
+        startDate={startDate}
       />
     </>
   );
